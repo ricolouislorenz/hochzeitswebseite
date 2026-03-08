@@ -6,7 +6,7 @@ import { AdminDashboard } from "./components/AdminDashboard";
 import { BuffetList } from "./components/BuffetList";
 import { BuffetListView } from "./components/BuffetListView";
 import { WeddingGame } from "./components/WeddingGame";
-import { PhotoUpload } from "./components/PhotoUpload";
+import { TJAView } from "./components/TJAView";
 
 export const router = createBrowserRouter([
   {
@@ -19,7 +19,7 @@ export const router = createBrowserRouter([
       { path: "buffet", Component: BuffetList },
       { path: "buffet-view", Component: BuffetListView },
       { path: "wedding-game", Component: WeddingGame },
-      { path: "fotos-teilen", Component: PhotoUpload },
+      { path: "fotos-teilen", Component: TJAView },
     ],
   },
 ]);
