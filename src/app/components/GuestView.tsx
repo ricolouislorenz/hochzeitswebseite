@@ -17,6 +17,7 @@ import {
   MessageCircle,
   Sparkles,
   Pencil,
+  Clock3,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
@@ -28,6 +29,7 @@ import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 import { toast } from "sonner";
 import { PhotobookGallery } from "./PhotobookGallery";
 import { TJAView } from "./TJAView";
+import { Ceremony } from "./Ceremony";
 
 interface Guest {
   code: string;
@@ -84,7 +86,7 @@ export function GuestView() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentView, setCurrentView] = useState<
-    "invitation" | "buffet" | "gallery" | "tja"
+    "invitation" | "ceremony" | "buffet" | "gallery" | "tja"
   >("invitation");
   const [isEditing, setIsEditing] = useState(false);
 
@@ -854,45 +856,47 @@ export function GuestView() {
               </span>
             </div>
 
-            <button
-              onClick={() => navigate("/")}
-              className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
-            >
-              <LogOut className="size-4" />
-            </button>
-          </div>
+<button
+  onClick={() => setCurrentView("invitation")}
+  className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+    currentView === "invitation"
+      ? "text-[#C6A75E] bg-[#C6A75E]/8"
+      : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
+  }`}
+>
+  <Heart
+    className={`size-5 transition-all duration-200 ${
+      currentView === "invitation"
+        ? "fill-[#C6A75E]"
+        : "group-hover:fill-[#C6A75E]/30"
+    }`}
+  />
+  <span className="font-medium text-sm">Einladung</span>
+</button>
 
-          <div className="overflow-x-auto">
-            <div className="flex min-w-max gap-2 sm:gap-3 lg:gap-6">
-              <button
-                onClick={() => setCurrentView("invitation")}
-                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                  currentView === "invitation"
-                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
-                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
-                }`}
-              >
-                <Heart
-                  className={`size-5 transition-all duration-200 ${
-                    currentView === "invitation"
-                      ? "fill-[#C6A75E]"
-                      : "group-hover:fill-[#C6A75E]/30"
-                  }`}
-                />
-                <span className="font-medium text-sm">Einladung</span>
-              </button>
+<button
+  onClick={() => setCurrentView("ceremony")}
+  className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+    currentView === "ceremony"
+      ? "text-[#C6A75E] bg-[#C6A75E]/8"
+      : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
+  }`}
+>
+  <Clock3 className="size-5" />
+  <span className="font-medium text-sm">Ablauf</span>
+</button>
 
-              <button
-                onClick={() => setCurrentView("buffet")}
-                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                  currentView === "buffet"
-                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
-                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
-                }`}
-              >
-                <Utensils className="size-5" />
-                <span className="font-medium text-sm">Buffet</span>
-              </button>
+<button
+  onClick={() => setCurrentView("buffet")}
+  className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+    currentView === "buffet"
+      ? "text-[#C6A75E] bg-[#C6A75E]/8"
+      : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
+  }`}
+>
+  <Utensils className="size-5" />
+  <span className="font-medium text-sm">Buffet</span>
+</button>
 
               <button
                 onClick={() => setCurrentView("gallery")}
@@ -1175,6 +1179,7 @@ export function GuestView() {
     );
   };
 
+  const renderCeremony = () => <Ceremony />;
   const renderBuffet = () => <BuffetView />;
   const renderGallery = () => <PhotobookGallery />;
   const renderTJA = () => <TJAView />;
@@ -1184,6 +1189,7 @@ export function GuestView() {
       {renderNavigation()}
       <div className="py-4 sm:py-8">
         {currentView === "invitation" && renderInvitation()}
+        {currentView === "ceremony" && renderCeremony()}
         {currentView === "buffet" && renderBuffet()}
         {currentView === "gallery" && renderGallery()}
         {currentView === "tja" && renderTJA()}

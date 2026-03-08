@@ -100,7 +100,12 @@ export function BuffetListView() {
     selectedCategory === "Alle" ? BUFFET_CATEGORIES : [selectedCategory];
 
   const handleClose = () => {
-    navigate(-1);
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/");
   };
 
   if (isLoading) {
