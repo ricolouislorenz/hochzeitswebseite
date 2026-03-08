@@ -1,13 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router";
-import { Heart, Users, Bed, ChefHat, Utensils, Clock, Leaf, Home as HomeIcon, Image as ImageIcon, XCircle, LogOut, Minus, Plus, Trash2, Phone, MessageCircle, Sparkles, Pencil } from "lucide-react";
+import {
+  Heart,
+  Users,
+  Bed,
+  ChefHat,
+  Utensils,
+  Leaf,
+  Image as ImageIcon,
+  XCircle,
+  LogOut,
+  Minus,
+  Plus,
+  Trash2,
+  Phone,
+  MessageCircle,
+  Sparkles,
+  Pencil,
+} from "lucide-react";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Badge } from "./ui/badge";
 import { Checkbox } from "./ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 import { toast } from "sonner";
 import { PhotobookGallery } from "./PhotobookGallery";
@@ -17,7 +33,7 @@ interface Guest {
   code: string;
   name: string;
   isPlural?: boolean;
-  gender?: 'male' | 'female' | 'plural';
+  gender?: "male" | "female" | "plural";
 }
 
 interface FoodItem {
@@ -36,54 +52,98 @@ interface RSVP {
   needsAccommodation: boolean;
 }
 
+const createEmptyFoodItem = (): FoodItem => ({
+  name: "",
+  isVegetarian: false,
+  isVegan: false,
+  category: "Hauptspeise",
+});
+
 export function GuestView() {
   const navigate = useNavigate();
   const { code } = useParams<{ code: string }>();
+
   const [guest, setGuest] = useState<Guest | null>(null);
   const [rsvp, setRsvp] = useState<RSVP | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentView, setCurrentView] = useState<"invitation" | "buffet" | "gallery" | "tja">("invitation");
+  const [currentView, setCurrentView] = useState<
+    "invitation" | "buffet" | "gallery" | "tja"
+  >("invitation");
   const [isEditing, setIsEditing] = useState(false);
-  
-  // Form state
+
   const [attending, setAttending] = useState<boolean | null>(null);
-  const [numberOfGuests, setNumberOfGuests] = useState(2);
-  const [foodItems, setFoodItems] = useState<FoodItem[]>([{ name: "", isVegetarian: false, isVegan: false, category: 'Hauptspeise' }]);
+  const [numberOfGuests, setNumberOfGuests] = useState(1);
+  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [needsAccommodation, setNeedsAccommodation] = useState(false);
 
-  // Carousel state
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   const carouselImages = [
     "https://images.unsplash.com/photo-1759850845355-48359dba30e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVnYW50JTIwd2VkZGluZyUyMGNodXJjaCUyMGNlcmVtb255fGVufDF8fHx8MTc3Mjg5OTcxNnww&ixlib=rb-4.1.0&q=80&w=1080",
     "https://images.unsplash.com/photo-1771315021882-f881c02c6b3b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb21hbnRpYyUyMHdlZGRpbmclMjBjb3VwbGUlMjBjZWxlYnJhdGlvbnxlbnwxfHx8fDE3NzI4OTk3MTd8MA&ixlib=rb-4.1.0&q=80&w=1080",
     "https://images.unsplash.com/photo-1767986012547-3fc29b18339f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwcmVjZXB0aW9uJTIwZWxlZ2FudCUyMGRlY29yfGVufDF8fHx8MTc3MjgxNDg4Mnww&ixlib=rb-4.1.0&q=80&w=1080",
     "https://images.unsplash.com/photo-1649228167407-602c5437da82?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwcmluZ3MlMjBmbG93ZXJzJTIwYm91cXVldHxlbnwxfHx8fDE3NzI4OTk3MTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    "https://images.unsplash.com/photo-1762216444919-043cf813e4de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwdmVudWUlMjBvdXRkb29yJTIwZ2FyZGVufGVufDF8fHx8MTc3MjgzMjUwMHww&ixlib=rb-4.1.0&q=80&w=1080"
+    "https://images.unsplash.com/photo-1762216444919-043cf813e4de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwdmVudWUlMjBvdXRkb29yJTIwZ2FyZGVufGVufDF8fHx8MTc3MjgzMjUwMHww&ixlib=rb-4.1.0&q=80&w=1080",
   ];
 
-  // Helper function for dynamic texts based on singular/plural and gender
-  const getTexts = (gender: 'male' | 'female' | 'plural' = 'male') => {
-    const isPlural = gender === 'plural';
-    const greeting = gender === 'male' ? 'Lieber' : gender === 'female' ? 'Liebe' : 'Liebe';
-    
+  const getTexts = (gender: "male" | "female" | "plural" = "male") => {
+    const isPlural = gender === "plural";
+    const greeting = gender === "male" ? "Lieber" : "Liebe";
+
     return {
       greeting,
-      attending: isPlural ? "Werdet ihr an unserer Hochzeit teilnehmen?" : "Wirst du an unserer Hochzeit teilnehmen?",
+      welcomeMessage: isPlural
+        ? "Schön, dass ihr hier seid! Hier findet ihr alle wichtigen Infos für unseren großen Tag."
+        : "Schön, dass du hier bist! Hier findest du alle wichtigen Infos für unseren großen Tag.",
+      attending: isPlural
+        ? "Werdet ihr an unserer Hochzeit teilnehmen?"
+        : "Wirst du an unserer Hochzeit teilnehmen?",
       attendingYes: isPlural ? "Ja, wir kommen gerne" : "Ja, ich komme gerne",
-      attendingNo: isPlural ? "Leider können wir nicht teilnehmen" : "Leider kann ich nicht teilnehmen",
-      food: isPlural ? "Was möchtet ihr zum Buffet beitragen?" : "Was möchtest du zum Buffet beitragen?",
-      accommodation: isPlural ? "Braucht ihr eine Übernachtungsmöglichkeit?" : "Brauchst du eine Übernachtungsmöglichkeit?",
-      yesPlease: "Ja, bitte",
+      attendingNo: isPlural
+        ? "Leider können wir nicht teilnehmen"
+        : "Leider kann ich nicht teilnehmen",
+      guestCountQuestion: isPlural
+        ? "Mit wie viel Personen (inklusive euch selbst) werdet ihr kommen?"
+        : "Mit wie viel Personen (inklusive dir selbst) wirst du kommen?",
+      defaultGuestCount: isPlural ? 2 : 1,
+      food: isPlural
+        ? "Was möchtet ihr zum Buffet beitragen?"
+        : "Was möchtest du zum Buffet beitragen?",
+      foodSubtext: isPlural
+        ? "Damit für das leibliche Wohl gesorgt ist, bitten wir um einen Beitrag zum Buffet. Getränke werden gestellt. Falls ihr euch inspirieren lassen wollt, schaut doch schon mal auf der Buffetübersicht, was die anderen mitbringen."
+        : "Damit für das leibliche Wohl gesorgt ist, bitten wir um einen Beitrag zum Buffet. Getränke werden gestellt. Falls du dich inspirieren lassen möchtest, schau doch schon mal auf der Buffetübersicht, was die anderen mitbringen.",
+      accommodation: isPlural
+        ? "Möchtet ihr bei uns übernachten?"
+        : "Möchtest du bei uns übernachten?",
+      accommodationSubtext: isPlural
+        ? "Ihr könnt gerne bei uns zelten oder es euch mit einer Isomatte im Haus gemütlich machen."
+        : "Du kannst gerne bei uns zelten oder es dir mit einer Isomatte im Haus gemütlich machen.",
+      yesPlease: "Ja, gerne",
       noThanks: "Nein, danke",
-      joyfulMessage: isPlural ? "wir freuen uns riesig, dass ihr dabei seid!" : "wir freuen uns riesig, dass du dabei bist!",
-      meaningMessage: isPlural ? "Es bedeutet uns sehr viel, dass ihr an diesem besonderen Tag dabei sein werdet." : "Es bedeutet uns sehr viel, dass du an diesem besonderen Tag dabei sein wirst.",
-      excitedMessage: isPlural ? "Wir können es kaum erwarten, diesen unvergesslichen Moment mit euch zu feiern!" : "Wir können es kaum erwarten, diesen unvergesslichen Moment mit dir zu feiern!",
-      sadMessage: isPlural ? "schade, dass ihr nicht dabei sein könnt" : "schade, dass du nicht dabei sein kannst",
-      sadMessageLong: isPlural ? "Wir werden an euch denken und hoffen, dass wir bald wieder zusammen feiern können." : "Wir werden an dich denken und hoffen, dass wir bald wieder zusammen feiern können.",
+      joyfulMessage: isPlural
+        ? "wir freuen uns riesig, dass ihr dabei seid!"
+        : "wir freuen uns riesig, dass du dabei bist!",
+      meaningMessage: isPlural
+        ? "Es bedeutet uns sehr viel, dass ihr an diesem besonderen Tag dabei sein werdet."
+        : "Es bedeutet uns sehr viel, dass du an diesem besonderen Tag dabei sein wirst.",
+      excitedMessage: isPlural
+        ? "Wir können es kaum erwarten, diesen unvergesslichen Moment mit euch zu feiern!"
+        : "Wir können es kaum erwarten, diesen unvergesslichen Moment mit dir zu feiern!",
+      sadMessage: isPlural
+        ? "schade, dass ihr nicht dabei sein könnt"
+        : "schade, dass du nicht dabei sein kannst",
+      sadMessageLong: isPlural
+        ? "Wir werden an euch denken und hoffen, dass wir bald wieder zusammen feiern können."
+        : "Wir werden an dich denken und hoffen, dass wir bald wieder zusammen feiern können.",
       yourDetails: isPlural ? "Eure Angaben" : "Deine Angaben",
-      yourDetailsDesc: isPlural ? "Übersicht eurer Rückmeldung" : "Übersicht deiner Rückmeldung",
       yourBuffet: isPlural ? "Euer Buffet-Beitrag" : "Dein Buffet-Beitrag",
+      partnerSectionTitle: isPlural
+        ? "Eure Ansprechpartner"
+        : "Deine Ansprechpartner",
+      partnerSectionText: isPlural
+        ? "Bei Fragen könnt ihr euch gerne an unsere Trauzeugen wenden."
+        : "Bei Fragen kannst du dich gerne an unsere Trauzeugen wenden.",
     };
   };
 
@@ -91,11 +151,10 @@ export function GuestView() {
     loadGuestData();
   }, []);
 
-  // Auto-rotate carousel
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length);
-    }, 4000); // Change image every 4 seconds
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [carouselImages.length]);
@@ -104,22 +163,22 @@ export function GuestView() {
     if (!code) return;
 
     setIsLoading(true);
+
     try {
-      // Load guest info
       const guestResponse = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-bda29bfd/guest/login`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${publicAnonKey}`,
+            Authorization: `Bearer ${publicAnonKey}`,
           },
           body: JSON.stringify({ code }),
-        }
+        },
       );
 
       const guestData = await guestResponse.json();
-      
+
       if (!guestResponse.ok || !guestData.success) {
         toast.error("Ungültiger Code");
         navigate("/");
@@ -127,38 +186,43 @@ export function GuestView() {
       }
 
       setGuest(guestData.guest);
+      setNumberOfGuests(
+        guestData.guest?.gender === "plural" ? 2 : 1,
+      );
 
-      // Load existing RSVP
       const rsvpResponse = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-bda29bfd/guest/rsvp/${code}`,
         {
           headers: {
-            "Authorization": `Bearer ${publicAnonKey}`,
+            Authorization: `Bearer ${publicAnonKey}`,
           },
-        }
+        },
       );
 
       const rsvpData = await rsvpResponse.json();
-      
+
       if (rsvpData.rsvp) {
-        // Migrate old format to new format if needed
-        let migratedRsvp = { ...rsvpData.rsvp };
-        
-        // If foodItems doesn't exist but foodItem does, migrate it
+        const migratedRsvp = { ...rsvpData.rsvp };
+
         if (!migratedRsvp.foodItems && migratedRsvp.foodItem) {
-          migratedRsvp.foodItems = [{
-            name: migratedRsvp.foodItem,
-            isVegetarian: migratedRsvp.isVegetarian || false,
-            isVegan: migratedRsvp.isVegan || false,
-            category: migratedRsvp.category || 'Hauptspeise'
-          }];
+          migratedRsvp.foodItems = [
+            {
+              name: migratedRsvp.foodItem,
+              isVegetarian: migratedRsvp.isVegetarian || false,
+              isVegan: migratedRsvp.isVegan || false,
+              category: migratedRsvp.category || "Hauptspeise",
+            },
+          ];
         }
-        
-        // Ensure foodItems is always an array
-        if (!migratedRsvp.foodItems) {
+
+        if (!Array.isArray(migratedRsvp.foodItems)) {
           migratedRsvp.foodItems = [];
         }
-        
+
+        migratedRsvp.foodItems = migratedRsvp.foodItems.filter(
+          (item: FoodItem) => item?.name?.trim()?.length > 0,
+        );
+
         setRsvp(migratedRsvp);
       }
     } catch (error) {
@@ -169,23 +233,22 @@ export function GuestView() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (attending === null) {
-      toast.error("Bitte wählen Sie Zusage oder Absage");
+      toast.error("Bitte wähle aus, ob du teilnehmen kannst.");
       return;
     }
 
-    if (attending && foodItems.length === 0) {
-      toast.error("Bitte geben Sie mindestens eine Speise ein");
-      return;
-    }
-
-    if (attending && foodItems.some(item => !item.name.trim())) {
-      toast.error("Bitte füllen Sie alle Speisen-Felder aus oder löschen Sie leere Einträge");
-      return;
-    }
+    const cleanedFoodItems = attending
+      ? foodItems
+          .filter((item) => item.name.trim().length > 0)
+          .map((item) => ({
+            ...item,
+            name: item.name.trim(),
+          }))
+      : [];
 
     setIsSubmitting(true);
 
@@ -196,26 +259,26 @@ export function GuestView() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${publicAnonKey}`,
+            Authorization: `Bearer ${publicAnonKey}`,
           },
           body: JSON.stringify({
-            code: code, // Use code from URL params
+            code,
             attending,
             numberOfGuests: attending ? numberOfGuests : 0,
-            foodItems: attending ? foodItems.filter(item => item.name.trim()) : [],
+            foodItems: cleanedFoodItems,
             needsAccommodation: attending ? needsAccommodation : false,
           }),
-        }
+        },
       );
 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        toast.success("Ihre Rückmeldung wurde gespeichert!");
+        toast.success("Deine Rückmeldung wurde gespeichert!");
         setRsvp(data.rsvp);
+        setFoodItems(cleanedFoodItems);
         setIsEditing(false);
-        // Scroll to top when showing the invitation card
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         toast.error(data.error || "Fehler beim Speichern");
       }
@@ -228,40 +291,51 @@ export function GuestView() {
   };
 
   const handleEditRSVP = () => {
-    // Pre-fill form with existing RSVP data
     if (rsvp) {
       setAttending(rsvp.attending);
-      setNumberOfGuests(rsvp.numberOfGuests);
-      // Ensure at least one food item
-      const items = rsvp.foodItems && rsvp.foodItems.length > 0 
-        ? rsvp.foodItems 
-        : [{ name: "", isVegetarian: false, isVegan: false, category: 'Hauptspeise' }];
-      setFoodItems(items);
+      setNumberOfGuests(
+        rsvp.numberOfGuests ||
+          (guest?.gender === "plural" ? 2 : 1),
+      );
+      setFoodItems(
+        Array.isArray(rsvp.foodItems)
+          ? rsvp.foodItems.filter((item) => item?.name?.trim()?.length > 0)
+          : [],
+      );
       setNeedsAccommodation(rsvp.needsAccommodation);
     }
+
     setIsEditing(true);
+  };
+
+  const addFoodItem = () => {
+    if (foodItems.length >= 3) return;
+    setFoodItems([...foodItems, createEmptyFoodItem()]);
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F6F1E9] via-[#E8C7C8]/20 to-white">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F6F1E9] via-[#E8C7C8]/20 to-white px-4">
         <div className="text-center">
-          <Heart className="size-16 text-[#C6A75E] animate-pulse mx-auto mb-4" />
-          <p className="text-xl text-[#A3B18A]">Lädt...</p>
+          <Heart className="size-14 sm:size-16 text-[#C6A75E] animate-pulse mx-auto mb-4" />
+          <p className="text-lg sm:text-xl text-[#A3B18A]">Lädt...</p>
         </div>
       </div>
     );
   }
 
-  // Error state - guest not found
   if (!guest) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white flex items-center justify-center p-6">
-        <Card className="max-w-md border-2 border-[#E8C7C8]">
-          <CardContent className="p-8 text-center">
-            <XCircle className="size-16 text-red-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-serif text-slate-800 mb-2">Gast nicht gefunden</h2>
-            <p className="text-slate-600 mb-6">Der eingegebene Code ist ungültig.</p>
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white flex items-center justify-center p-4 sm:p-6">
+        <Card className="w-full max-w-md border-2 border-[#E8C7C8]">
+          <CardContent className="p-6 sm:p-8 text-center">
+            <XCircle className="size-14 sm:size-16 text-red-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-serif text-slate-800 mb-2">
+              Gast nicht gefunden
+            </h2>
+            <p className="text-slate-600 mb-6">
+              Der eingegebene Code ist ungültig.
+            </p>
             <Button
               onClick={() => navigate("/")}
               className="bg-[#C6A75E] hover:bg-[#A3B18A] text-white"
@@ -274,19 +348,19 @@ export function GuestView() {
     );
   }
 
-  // Show RSVP form if not completed
   if (!rsvp || isEditing) {
+    const texts = getTexts(guest.gender);
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#F6F1E9] via-[#E8C7C8]/20 to-white p-4">
-        <div className="max-w-3xl mx-auto py-8">
-          <Card className="border border-[#E8C7C8] shadow-xl overflow-hidden bg-white">
-            {/* Image Carousel */}
-            <div className="relative h-80 overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-[#F6F1E9] via-[#E8C7C8]/20 to-white px-3 py-4 sm:px-4 sm:py-6">
+        <div className="max-w-4xl mx-auto">
+          <Card className="border border-[#E8C7C8] shadow-[0_18px_60px_rgba(129,94,69,0.12)] overflow-hidden bg-white rounded-[28px]">
+            <div className="relative h-64 sm:h-80 md:h-[26rem] overflow-hidden">
               {carouselImages.map((image, index) => (
                 <div
                   key={index}
                   className={`absolute inset-0 transition-opacity duration-1000 ${
-                    index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                    index === currentImageIndex ? "opacity-100" : "opacity-0"
                   }`}
                 >
                   <img
@@ -294,253 +368,337 @@ export function GuestView() {
                     alt={`Wedding ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#5B473A]/35 via-transparent to-transparent" />
                 </div>
               ))}
             </div>
 
-            {/* Welcome Message under Image */}
-            <div className="bg-gradient-to-br from-[#F6F1E9] via-white to-[#E8C7C8]/10 p-8 text-center border-b border-[#E8C7C8]/30">
-              <h1 className="text-3xl font-serif mb-3 text-slate-800">Herzlich Willkommen</h1>
-              <p className="text-xl text-slate-700 mb-2">
-                {getTexts(guest.gender).greeting} <span className="font-semibold text-[#C6A75E]">{guest.name}</span>
-              </p>
-              <p className="text-base text-slate-600">
-                Schön, dass du hier bist! Bitte fülle das folgende Formular aus.
-              </p>
-            </div>
+            <div className="bg-gradient-to-b from-[#FBF6F0] via-[#FFFDF9] to-white px-4 sm:px-8 lg:px-12 pt-6 sm:pt-10 pb-4 sm:pb-6 border-b border-[#EAD8C6]">
+              <div className="mx-auto max-w-3xl rounded-[28px] border border-[#E7D9C4] bg-gradient-to-b from-[#FFFDF9] via-[#FBF4EC] to-white shadow-[0_12px_40px_rgba(139,107,84,0.10)]">
+                <div className="px-5 sm:px-8 lg:px-10 pt-8 sm:pt-10 pb-6 text-center">
+                  <Heart className="size-10 sm:size-12 text-[#C6A75E] mx-auto mb-5" />
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-slate-800 mb-4">
+                    Herzlich Willkommen
+                  </h1>
+                  <p className="text-base sm:text-lg text-slate-700 leading-relaxed max-w-2xl mx-auto">
+                    {texts.greeting}{" "}
+                    <span className="font-semibold text-[#B2884A]">
+                      {guest.name}
+                    </span>
+                    ! {texts.welcomeMessage}
+                  </p>
+                </div>
 
-            {/* Wedding Details */}
-            <div className="bg-gradient-to-br from-[#E8C7C8]/30 via-[#F6F1E9]/50 to-white p-8 text-center border-b border-[#E8C7C8]/50">
-              <div className="bg-white/60 backdrop-blur-sm rounded-lg p-6 border border-[#E8C7C8]/30">
-                <p className="text-sm uppercase tracking-wider text-[#A3B18A] font-medium mb-2">Kirchliche Trauung</p>
-                <h2 className="text-3xl font-serif text-[#C6A75E] mb-4">18. Juli 2026</h2>
-                <div className="space-y-2 text-slate-700">
-                  <p className="text-lg font-medium">14:00 Uhr</p>
-                  <div className="pt-2">
-                    <p className="text-base font-medium">Echemer Kirche</p>
-                    <p className="text-sm text-slate-600">An der Kirche 3, 21379 Echem</p>
+                <div className="px-5 sm:px-8 lg:px-10 pb-8 sm:pb-10">
+                  <div className="h-px bg-gradient-to-r from-transparent via-[#D8C2AA] to-transparent mb-6 sm:mb-8" />
+
+                  <div className="text-center">
+                    <p className="text-xs sm:text-sm uppercase tracking-[0.28em] text-[#8FA07B] font-medium mb-3">
+                      Kirchliche Trauung
+                    </p>
+                    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-[#C6A75E] mb-5 sm:mb-6">
+                      18. Juli 2026
+                    </h2>
+
+                    <div className="space-y-4 text-slate-700">
+                      <div className="flex items-center justify-center gap-3 sm:gap-4">
+                        <div className="w-10 sm:w-16 h-px bg-[#D9C5B0]" />
+                        <p className="text-xl sm:text-2xl font-medium text-slate-800">
+                          14:00 Uhr
+                        </p>
+                        <div className="w-10 sm:w-16 h-px bg-[#D9C5B0]" />
+                      </div>
+
+                      <div className="pt-1">
+                        <p className="text-lg sm:text-xl font-medium text-slate-800">
+                          Echemer Kirche
+                        </p>
+                        <p className="text-sm sm:text-base text-slate-600">
+                          An der Kirche
+                        </p>
+                        <p className="text-sm sm:text-base text-slate-600">
+                          21379 Echem
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <CardContent className="p-8">
-              <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Attending Section */}
-                <div className="space-y-4">
-                  <Label className="text-lg font-medium text-slate-700 flex items-center gap-2">
-                    {getTexts(guest.gender).attending}
-                  </Label>
-                  <div className="space-y-3">
-                    <div 
-                      onClick={() => {
-                        setAttending(true);
-                        // Reset to default value if currently 0
-                        if (numberOfGuests === 0) {
-                          setNumberOfGuests(2);
-                        }
-                      }}
-                      className={`p-5 border-2 rounded-lg cursor-pointer transition-all text-center ${
-                        attending === true 
-                          ? 'border-[#C6A75E] bg-[#C6A75E]/10 shadow-sm' 
-                          : 'border-slate-200 bg-white hover:border-[#E8C7C8] hover:bg-[#E8C7C8]/10'
-                      }`}
-                    >
-                      <p className="text-base font-medium text-slate-700">{getTexts(guest.gender).attendingYes}</p>
-                    </div>
-                    <div 
-                      onClick={() => setAttending(false)}
-                      className={`p-5 border-2 rounded-lg cursor-pointer transition-all text-center ${
-                        attending === false 
-                          ? 'border-slate-300 bg-slate-50 shadow-sm' 
-                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-                      }`}
-                    >
-                      <p className="text-base font-medium text-slate-700">{getTexts(guest.gender).attendingNo}</p>
+
+            <div className="h-4 sm:h-6 bg-gradient-to-b from-[#FBF3EA] to-white" />
+
+            <CardContent className="px-4 sm:px-8 lg:px-10 py-6 sm:py-8 bg-white">
+              <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+                <div className="rounded-2xl border border-[#EAD9C8] bg-[#FFFCF8] p-5 sm:p-6 shadow-sm">
+                  <div className="space-y-4">
+                    <Label className="text-lg font-medium text-slate-700 flex items-center gap-2">
+                      {texts.attending}
+                    </Label>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      <div
+                        onClick={() => {
+                          setAttending(true);
+                          if (numberOfGuests === 0) {
+                            setNumberOfGuests(texts.defaultGuestCount);
+                          }
+                        }}
+                        className={`p-4 sm:p-5 border-2 rounded-xl cursor-pointer transition-all text-center ${
+                          attending === true
+                            ? "border-[#C6A75E] bg-[#C6A75E]/12 shadow-sm"
+                            : "border-[#E7DCD0] bg-white hover:border-[#D6B88B] hover:bg-[#FCF7EF]"
+                        }`}
+                      >
+                        <p className="text-base font-medium text-slate-700">
+                          {texts.attendingYes}
+                        </p>
+                      </div>
+
+                      <div
+                        onClick={() => setAttending(false)}
+                        className={`p-4 sm:p-5 border-2 rounded-xl cursor-pointer transition-all text-center ${
+                          attending === false
+                            ? "border-slate-300 bg-slate-50 shadow-sm"
+                            : "border-[#E7DCD0] bg-white hover:border-slate-300 hover:bg-slate-50"
+                        }`}
+                      >
+                        <p className="text-base font-medium text-slate-700">
+                          {texts.attendingNo}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {attending && (
-                  <div className="space-y-8 pt-4">
-                    {/* Number of Guests */}
-                    <div className="space-y-4">
-                      <Label className="text-lg font-medium text-slate-700 flex items-center gap-2">
-                        <Users className="size-5 text-[#C6A75E]" />
-                        Wie viele Personen kommen?
-                      </Label>
-                      <div className="flex items-center justify-center gap-6">
-                        <Button
-                          type="button"
-                          onClick={() => setNumberOfGuests(Math.max(1, numberOfGuests - 1))}
-                          className="bg-[#E8C7C8] hover:bg-[#C6A75E] text-white rounded-full w-12 h-12 p-0 shadow-sm"
-                          disabled={numberOfGuests <= 1}
-                        >
-                          <Minus className="size-5" />
-                        </Button>
-                        
-                        <div className="text-center min-w-[100px]">
-                          <p className="text-5xl font-light text-[#C6A75E]">{numberOfGuests}</p>
-                          <p className="text-sm text-slate-500 mt-1">
-                            {numberOfGuests === 1 ? "Person" : "Personen"}
-                          </p>
-                        </div>
-                        
-                        <Button
-                          type="button"
-                          onClick={() => setNumberOfGuests(Math.min(10, numberOfGuests + 1))}
-                          className="bg-[#E8C7C8] hover:bg-[#C6A75E] text-white rounded-full w-12 h-12 p-0 shadow-sm"
-                          disabled={numberOfGuests >= 10}
-                        >
-                          <Plus className="size-5" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Food Items */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <Label className="text-lg font-medium text-slate-700 flex items-center gap-2">
-                          <ChefHat className="size-5 text-[#C6A75E]" />
-                          {getTexts(guest.gender).food}
+                  <div className="space-y-5 sm:space-y-6">
+                    <div className="rounded-2xl border border-[#EAD9C8] bg-[#FFFCF8] p-5 sm:p-6 shadow-sm">
+                      <div className="space-y-4">
+                        <Label className="text-lg font-medium text-slate-700 flex items-start gap-2">
+                          <Users className="size-5 text-[#C6A75E] mt-0.5 shrink-0" />
+                          <span>{texts.guestCountQuestion}</span>
                         </Label>
-                        <div className="flex gap-2">
+
+                        <div className="flex items-center justify-center gap-4 sm:gap-6">
                           <Button
                             type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              const newWindow = window.open('/buffet-view', '_blank', 'noopener,noreferrer');
-                              if (!newWindow) {
-                                toast.error('Bitte erlaube Pop-ups für diese Seite');
-                              }
-                            }}
-                            variant="outline"
-                            size="sm"
-                            className="border-2 border-[#A3B18A] bg-white text-[#A3B18A] hover:bg-[#A3B18A] hover:text-white font-medium transition-all shadow-sm"
+                            onClick={() =>
+                              setNumberOfGuests(
+                                Math.max(1, numberOfGuests - 1),
+                              )
+                            }
+                            className="bg-[#E8C7C8] hover:bg-[#C6A75E] text-white rounded-full w-11 h-11 sm:w-12 sm:h-12 p-0 shadow-sm"
+                            disabled={numberOfGuests <= 1}
                           >
-                            <Utensils className="size-4 mr-1" />
-                            Buffetübersicht
+                            <Minus className="size-5" />
                           </Button>
-                          {foodItems.length < 3 && (
-                            <Button
-                              type="button"
-                              onClick={() => setFoodItems([...foodItems, { name: "", isVegetarian: false, isVegan: false, category: 'Hauptspeise' }])}
-                              variant="outline"
-                              size="sm"
-                              className="border-2 border-[#C6A75E] bg-white text-[#C6A75E] hover:bg-[#C6A75E] hover:text-white font-medium transition-all shadow-sm"
-                            >
-                              <Plus className="size-4 mr-1" />
-                              Hinzufügen
-                            </Button>
-                          )}
+
+                          <div className="text-center min-w-[88px] sm:min-w-[100px]">
+                            <p className="text-4xl sm:text-5xl font-light text-[#C6A75E] leading-none">
+                              {numberOfGuests}
+                            </p>
+                            <p className="text-sm text-slate-500 mt-2">
+                              {numberOfGuests === 1 ? "Person" : "Personen"}
+                            </p>
+                          </div>
+
+                          <Button
+                            type="button"
+                            onClick={() =>
+                              setNumberOfGuests(
+                                Math.min(10, numberOfGuests + 1),
+                              )
+                            }
+                            className="bg-[#E8C7C8] hover:bg-[#C6A75E] text-white rounded-full w-11 h-11 sm:w-12 sm:h-12 p-0 shadow-sm"
+                            disabled={numberOfGuests >= 10}
+                          >
+                            <Plus className="size-5" />
+                          </Button>
                         </div>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        {foodItems.map((item, index) => (
-                          <Card key={index} className="border border-[#E8C7C8] bg-white relative">
-                            <CardContent className="p-5">
-                              {foodItems.length >= 2 && (
-                                <Button
-                                  type="button"
-                                  onClick={() => setFoodItems(foodItems.filter((_, i) => i !== index))}
-                                  variant="outline"
-                                  size="sm"
-                                  className="absolute top-3 right-3 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 h-9 w-9 p-0 rounded-full"
-                                >
-                                  <Trash2 className="size-4" />
-                                </Button>
-                              )}
-                              
-                              <div className="space-y-3">
-                                <Input
-                                  type="text"
-                                  value={item.name}
-                                  onChange={(e) => {
-                                    const newItems = [...foodItems];
-                                    newItems[index] = { ...item, name: e.target.value };
-                                    setFoodItems(newItems);
-                                  }}
-                                  placeholder={`Speise ${index + 1} (z.B. Nudelsalat, Obstkuchen)`}
-                                  className="text-base p-4 border border-slate-200 focus:border-[#C6A75E]"
-                                />
-                                
-                                <div className="flex flex-wrap gap-3">
-                                  <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`vegetarian-${index}`}
-                                      checked={item.isVegetarian}
-                                      onCheckedChange={(checked) => {
-                                        const newItems = [...foodItems];
-                                        newItems[index] = { 
-                                          ...item, 
-                                          isVegetarian: !!checked,
-                                          isVegan: checked ? false : item.isVegan
-                                        };
-                                        setFoodItems(newItems);
-                                      }}
-                                    />
-                                    <Label htmlFor={`vegetarian-${index}`} className="cursor-pointer flex items-center gap-1 text-sm text-slate-600">
-                                      <Leaf className="size-3 text-green-500" />
-                                      Vegetarisch
-                                    </Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`vegan-${index}`}
-                                      checked={item.isVegan}
-                                      onCheckedChange={(checked) => {
-                                        const newItems = [...foodItems];
-                                        newItems[index] = { 
-                                          ...item, 
-                                          isVegan: !!checked,
-                                          isVegetarian: checked ? false : item.isVegetarian
-                                        };
-                                        setFoodItems(newItems);
-                                      }}
-                                    />
-                                    <Label htmlFor={`vegan-${index}`} className="cursor-pointer flex items-center gap-1 text-sm text-slate-600">
-                                      <Leaf className="size-3 text-emerald-500" />
-                                      Vegan
-                                    </Label>
-                                  </div>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
                       </div>
                     </div>
 
-                    {/* Accommodation */}
-                    <div className="space-y-4">
-                      <Label className="text-lg font-medium text-slate-700 flex items-center gap-2 mb-4">
-                        <Bed className="size-5 text-[#C6A75E]" />
-                        {getTexts(guest.gender).accommodation}
-                      </Label>
-                      <p className="text-sm text-slate-500 mb-4 italic">
-                        Wir haben keine Schlafplätze im Haus, aber können gerne Platz für Zelte o.ä. zur Verfügung stellen.
-                      </p>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div 
-                          onClick={() => setNeedsAccommodation(true)}
-                          className={`p-5 border-2 rounded-lg cursor-pointer transition-all text-center ${
-                            needsAccommodation 
-                              ? 'border-[#C6A75E] bg-[#C6A75E]/10 shadow-sm' 
-                              : 'border-slate-200 bg-white hover:border-[#E8C7C8] hover:bg-[#E8C7C8]/10'
-                          }`}
-                        >
-                          <p className="text-base font-medium text-slate-700">{getTexts(guest.gender).yesPlease}</p>
+                    <div className="rounded-2xl border border-[#EAD9C8] bg-[#FFFCF8] p-5 sm:p-6 shadow-sm">
+                      <div className="space-y-4">
+                        <div className="flex flex-col gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-lg font-medium text-slate-700 flex items-start gap-2">
+                              <ChefHat className="size-5 text-[#C6A75E] mt-0.5 shrink-0" />
+                              <span>{texts.food}</span>
+                            </Label>
+                            <p className="text-sm sm:text-[15px] text-slate-600 leading-relaxed">
+                              {texts.foodSubtext}
+                            </p>
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <Button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                navigate("/buffet-view");
+                              }}
+                              className="w-full sm:w-auto bg-[#8FA07B] hover:bg-[#7D906A] text-white border border-[#8FA07B] shadow-sm"
+                            >
+                              <Utensils className="size-4 mr-2" />
+                              Buffetübersicht
+                            </Button>
+
+                            {foodItems.length < 3 && (
+                              <Button
+                                type="button"
+                                onClick={addFoodItem}
+                                className="w-full sm:w-auto bg-[#C6A75E] hover:bg-[#B48F48] text-white border border-[#C6A75E] shadow-sm"
+                              >
+                                <Plus className="size-4 mr-2" />
+                                Hinzufügen
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        <div 
-                          onClick={() => setNeedsAccommodation(false)}
-                          className={`p-5 border-2 rounded-lg cursor-pointer transition-all text-center ${
-                            !needsAccommodation 
-                              ? 'border-[#A3B18A] bg-[#A3B18A]/10 shadow-sm' 
-                              : 'border-slate-200 bg-white hover:border-[#E8C7C8] hover:bg-[#E8C7C8]/10'
-                          }`}
-                        >
-                          <p className="text-base font-medium text-slate-700">{getTexts(guest.gender).noThanks}</p>
+
+                        {foodItems.length > 0 && (
+                          <div className="space-y-3">
+                            {foodItems.map((item, index) => (
+                              <Card
+                                key={index}
+                                className="border border-[#E6D7C8] bg-white relative"
+                              >
+                                <CardContent className="p-4 sm:p-5">
+                                  <div className="space-y-3">
+                                    {foodItems.length >= 1 && (
+                                      <div className="flex justify-end">
+                                        <Button
+                                          type="button"
+                                          onClick={() =>
+                                            setFoodItems(
+                                              foodItems.filter(
+                                                (_, i) => i !== index,
+                                              ),
+                                            )
+                                          }
+                                          variant="outline"
+                                          size="sm"
+                                          className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 h-9 w-9 p-0 rounded-full"
+                                        >
+                                          <Trash2 className="size-4" />
+                                        </Button>
+                                      </div>
+                                    )}
+
+                                    <Input
+                                      type="text"
+                                      value={item.name}
+                                      onChange={(e) => {
+                                        const newItems = [...foodItems];
+                                        newItems[index] = {
+                                          ...item,
+                                          name: e.target.value,
+                                        };
+                                        setFoodItems(newItems);
+                                      }}
+                                      placeholder={`Speise ${index + 1} (z. B. Nudelsalat, Obstkuchen)`}
+                                      className="text-base p-4 border border-slate-200 focus:border-[#C6A75E]"
+                                    />
+
+                                    <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+                                      <div className="flex items-center space-x-2">
+                                        <Checkbox
+                                          id={`vegetarian-${index}`}
+                                          checked={item.isVegetarian}
+                                          onCheckedChange={(checked) => {
+                                            const newItems = [...foodItems];
+                                            newItems[index] = {
+                                              ...item,
+                                              isVegetarian: !!checked,
+                                              isVegan: checked
+                                                ? false
+                                                : item.isVegan,
+                                            };
+                                            setFoodItems(newItems);
+                                          }}
+                                        />
+                                        <Label
+                                          htmlFor={`vegetarian-${index}`}
+                                          className="cursor-pointer flex items-center gap-1 text-sm text-slate-600"
+                                        >
+                                          <Leaf className="size-3 text-green-500" />
+                                          Vegetarisch
+                                        </Label>
+                                      </div>
+
+                                      <div className="flex items-center space-x-2">
+                                        <Checkbox
+                                          id={`vegan-${index}`}
+                                          checked={item.isVegan}
+                                          onCheckedChange={(checked) => {
+                                            const newItems = [...foodItems];
+                                            newItems[index] = {
+                                              ...item,
+                                              isVegan: !!checked,
+                                              isVegetarian: checked
+                                                ? false
+                                                : item.isVegetarian,
+                                            };
+                                            setFoodItems(newItems);
+                                          }}
+                                        />
+                                        <Label
+                                          htmlFor={`vegan-${index}`}
+                                          className="cursor-pointer flex items-center gap-1 text-sm text-slate-600"
+                                        >
+                                          <Leaf className="size-3 text-emerald-500" />
+                                          Vegan
+                                        </Label>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-[#EAD9C8] bg-[#FFFCF8] p-5 sm:p-6 shadow-sm">
+                      <div className="space-y-4">
+                        <Label className="text-lg font-medium text-slate-700 flex items-start gap-2">
+                          <Bed className="size-5 text-[#C6A75E] mt-0.5 shrink-0" />
+                          <span>{texts.accommodation}</span>
+                        </Label>
+
+                        <p className="text-sm sm:text-[15px] text-slate-600 italic leading-relaxed">
+                          {texts.accommodationSubtext}
+                        </p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                          <div
+                            onClick={() => setNeedsAccommodation(true)}
+                            className={`p-4 sm:p-5 border-2 rounded-xl cursor-pointer transition-all text-center ${
+                              needsAccommodation
+                                ? "border-[#C6A75E] bg-[#C6A75E]/10 shadow-sm"
+                                : "border-[#E7DCD0] bg-white hover:border-[#D6B88B] hover:bg-[#FCF7EF]"
+                            }`}
+                          >
+                            <p className="text-base font-medium text-slate-700">
+                              {texts.yesPlease}
+                            </p>
+                          </div>
+
+                          <div
+                            onClick={() => setNeedsAccommodation(false)}
+                            className={`p-4 sm:p-5 border-2 rounded-xl cursor-pointer transition-all text-center ${
+                              !needsAccommodation
+                                ? "border-[#A3B18A] bg-[#A3B18A]/10 shadow-sm"
+                                : "border-[#E7DCD0] bg-white hover:border-[#D6B88B] hover:bg-[#FCF7EF]"
+                            }`}
+                          >
+                            <p className="text-base font-medium text-slate-700">
+                              {texts.noThanks}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -549,7 +707,7 @@ export function GuestView() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-[#C6A75E] hover:bg-[#A3B18A] text-white text-lg py-6 rounded-lg shadow-sm"
+                  className="w-full bg-[#C6A75E] hover:bg-[#A3B18A] text-white text-base sm:text-lg py-5 sm:py-6 rounded-xl shadow-sm"
                   disabled={isSubmitting || attending === null}
                 >
                   {isSubmitting ? "Wird gespeichert..." : "Rückmeldung absenden"}
@@ -562,100 +720,87 @@ export function GuestView() {
     );
   }
 
-  // Navigation for completed RSVP
   const renderNavigation = () => (
     <nav className="bg-white/95 backdrop-blur-md border-b border-[#E8C7C8]/30 sticky top-0 z-50 shadow-sm">
-      <div className="max-w-6xl mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo/Title */}
-          <div className="flex items-center gap-2">
-            <Heart className="size-6 text-[#C6A75E] fill-[#C6A75E]" />
-            <span className="text-xl font-serif text-slate-800">Unsere Hochzeit</span>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <Heart className="size-5 sm:size-6 text-[#C6A75E] fill-[#C6A75E] shrink-0" />
+              <span className="text-lg sm:text-xl font-serif text-slate-800 truncate">
+                Unsere Hochzeit
+              </span>
+            </div>
+
+            <button
+              onClick={() => navigate("/")}
+              className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
+            >
+              <LogOut className="size-4" />
+            </button>
           </div>
 
-          {/* Main Navigation */}
-          <div className="flex gap-6">
-            <button
-              onClick={() => setCurrentView("invitation")}
-              className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                currentView === "invitation" 
-                  ? "text-[#C6A75E]" 
-                  : "text-slate-600 hover:text-[#C6A75E]"
-              }`}
-            >
-              <Heart className={`size-5 transition-all duration-200 ${
-                currentView === "invitation" 
-                  ? "fill-[#C6A75E]" 
-                  : "group-hover:fill-[#C6A75E]/30"
-              }`} />
-              <span className="font-medium text-sm">Einladung</span>
-              {currentView === "invitation" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C6A75E] rounded-full" />
-              )}
-            </button>
-            
-            <button
-              onClick={() => setCurrentView("buffet")}
-              className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                currentView === "buffet" 
-                  ? "text-[#C6A75E]" 
-                  : "text-slate-600 hover:text-[#C6A75E]"
-              }`}
-            >
-              <Utensils className={`size-5 transition-all duration-200 ${
-                currentView === "buffet" 
-                  ? "stroke-[#C6A75E]" 
-                  : ""
-              }`} />
-              <span className="font-medium text-sm">Buffet</span>
-              {currentView === "buffet" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C6A75E] rounded-full" />
-              )}
-            </button>
-            
-            <button
-              onClick={() => setCurrentView("gallery")}
-              className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                currentView === "gallery" 
-                  ? "text-[#C6A75E]" 
-                  : "text-slate-600 hover:text-[#C6A75E]"
-              }`}
-            >
-              <ImageIcon className={`size-5 transition-all duration-200 ${
-                currentView === "gallery" 
-                  ? "stroke-[#C6A75E]" 
-                  : ""
-              }`} />
-              <span className="font-medium text-sm">Galerie</span>
-              {currentView === "gallery" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C6A75E] rounded-full" />
-              )}
-            </button>
-            
-            <button
-              onClick={() => setCurrentView("tja")}
-              className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                currentView === "tja" 
-                  ? "text-[#C6A75E]" 
-                  : "text-slate-600 hover:text-[#C6A75E]"
-              }`}
-            >
-              <Sparkles className={`size-5 transition-all duration-200 ${
-                currentView === "tja" 
-                  ? "stroke-[#C6A75E]" 
-                  : ""
-              }`} />
-              <span className="font-medium text-sm">Fotos teilen</span>
-              {currentView === "tja" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C6A75E] rounded-full" />
-              )}
-            </button>
+          <div className="overflow-x-auto">
+            <div className="flex min-w-max gap-2 sm:gap-3 lg:gap-6">
+              <button
+                onClick={() => setCurrentView("invitation")}
+                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  currentView === "invitation"
+                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
+                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
+                }`}
+              >
+                <Heart
+                  className={`size-5 transition-all duration-200 ${
+                    currentView === "invitation"
+                      ? "fill-[#C6A75E]"
+                      : "group-hover:fill-[#C6A75E]/30"
+                  }`}
+                />
+                <span className="font-medium text-sm">Einladung</span>
+              </button>
+
+              <button
+                onClick={() => setCurrentView("buffet")}
+                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  currentView === "buffet"
+                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
+                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
+                }`}
+              >
+                <Utensils className="size-5" />
+                <span className="font-medium text-sm">Buffet</span>
+              </button>
+
+              <button
+                onClick={() => setCurrentView("gallery")}
+                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  currentView === "gallery"
+                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
+                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
+                }`}
+              >
+                <ImageIcon className="size-5" />
+                <span className="font-medium text-sm">Galerie</span>
+              </button>
+
+              <button
+                onClick={() => setCurrentView("tja")}
+                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  currentView === "tja"
+                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
+                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
+                }`}
+              >
+                <Sparkles className="size-5" />
+                <span className="font-medium text-sm">Fotos teilen</span>
+              </button>
+            </div>
           </div>
-          
-          {/* Logout Button */}
+
           <button
             onClick={() => navigate("/")}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
+            className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
           >
             <LogOut className="size-4" />
             <span className="text-sm font-medium">Abmelden</span>
@@ -665,229 +810,261 @@ export function GuestView() {
     </nav>
   );
 
-  const renderInvitation = () => (
-    <div className="max-w-4xl mx-auto p-6">
-      <Card className="border border-[#E8C7C8] shadow-2xl bg-white overflow-hidden">
-        {/* Top Section: Welcome Message */}
-        <div className="bg-gradient-to-br from-[#E8C7C8]/20 via-[#F6F1E9] to-white p-12 text-center border-b border-[#E8C7C8]/30">
-          <Heart className="size-16 text-[#C6A75E] mx-auto mb-6" />
-          
-          {rsvp.attending ? (
-            <>
-              <p className="text-lg text-slate-600 mb-3">{getTexts(guest.gender).greeting} <span className="font-semibold text-[#C6A75E]">{guest.name}</span>,</p>
-              <h1 className="text-4xl font-serif text-slate-800 mb-4">{getTexts(guest.gender).joyfulMessage}</h1>
-              <p className="text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-                {getTexts(guest.gender).meaningMessage} 
-                {getTexts(guest.gender).excitedMessage}
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="text-lg text-slate-600 mb-3">{getTexts(guest.gender).greeting} <span className="font-semibold text-[#C6A75E]">{guest.name}</span>,</p>
-              <h1 className="text-4xl font-serif text-slate-800 mb-4">{getTexts(guest.gender).sadMessage}</h1>
-              <p className="text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-                {getTexts(guest.gender).sadMessageLong}
-              </p>
-            </>
-          )}
-        </div>
-        
-        {/* Wedding Details Section */}
-        <div className="bg-gradient-to-br from-[#F6F1E9] via-white to-[#E8C7C8]/10 p-10 border-b border-[#E8C7C8]/30">
-          <div className="text-center space-y-5">
-            <div>
-              <p className="text-sm uppercase tracking-wider text-[#A3B18A] font-medium mb-2">Kirchliche Trauung</p>
-              <h2 className="text-5xl font-serif text-[#C6A75E] mb-6">18. Juli 2026</h2>
-            </div>
-            
-            <div className="space-y-3 text-slate-700">
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-20 h-px bg-[#E8C7C8]"></div>
-                <p className="text-2xl font-medium">14:00 Uhr</p>
-                <div className="w-20 h-px bg-[#E8C7C8]"></div>
-              </div>
-              
-              <div className="pt-2">
-                <p className="text-xl font-medium text-slate-800">Echemer Kirche</p>
-                <p className="text-base text-slate-600">An der Kirche 3</p>
-                <p className="text-base text-slate-600">21379 Echem</p>
-              </div>
-            </div>
-          </div>
-        </div>
+  const renderInvitation = () => {
+    const texts = getTexts(guest.gender);
 
-        {/* RSVP Details Section (only for attending guests) */}
-        {rsvp.attending && (
-          <CardContent className="p-10 border-b border-[#E8C7C8]/30">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-serif text-slate-800">{getTexts(guest.gender).yourDetails}</h3>
-              <Button
-                onClick={handleEditRSVP}
-                variant="outline"
-                className="border-2 border-[#C6A75E] text-[#A3B18A] hover:bg-[#C6A75E]/10 hover:border-[#A3B18A] px-4 py-2 text-sm font-medium"
-              >
-                <Pencil className="size-4 mr-2" />
-                Angaben ändern
-              </Button>
-            </div>
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <Card className="border border-[#E8C7C8] shadow-2xl bg-white overflow-hidden rounded-[28px]">
+          <div className="bg-gradient-to-br from-[#E8C7C8]/20 via-[#F6F1E9] to-white px-6 sm:px-10 lg:px-12 py-10 sm:py-12 text-center border-b border-[#E8C7C8]/30">
+            <Heart className="size-14 sm:size-16 text-[#C6A75E] mx-auto mb-6" />
 
-            {/* RSVP Details Cards */}
-            <div className="grid md:grid-cols-2 gap-5 mb-8">
-              {/* Guests Count */}
-              <Card className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/30">
-                <CardContent className="p-6 text-center">
-                  <Users className="size-10 text-[#C6A75E] mx-auto mb-3" />
-                  <p className="text-sm uppercase tracking-wide text-slate-500 mb-2">Anzahl Gäste</p>
-                  <p className="text-4xl font-light text-[#C6A75E] mb-1">{rsvp.numberOfGuests}</p>
-                  <p className="text-sm text-slate-600">
-                    {rsvp.numberOfGuests === 1 ? "Person" : "Personen"}
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Accommodation */}
-              <Card className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/30">
-                <CardContent className="p-6 text-center">
-                  <Bed className="size-10 text-[#C6A75E] mx-auto mb-3" />
-                  <p className="text-sm uppercase tracking-wide text-slate-500 mb-2">Übernachtung</p>
-                  <p className="text-lg font-medium text-slate-800 mt-2">
-                    {rsvp.needsAccommodation ? "Wird benötigt" : "Nicht benötigt"}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Buffet Contributions */}
-            {rsvp.foodItems && rsvp.foodItems.length > 0 && (
-              <div>
-                <div className="text-center mb-6">
-                  <ChefHat className="size-10 text-[#C6A75E] mx-auto mb-2" />
-                  <p className="text-sm uppercase tracking-wide text-slate-500">{getTexts(guest.gender).yourBuffet}</p>
-                </div>
-                
-                <div className={`grid gap-4 mb-8 ${
-                  rsvp.foodItems.length === 1 ? 'grid-cols-1 max-w-md mx-auto' :
-                  rsvp.foodItems.length === 2 ? 'grid-cols-2 max-w-2xl mx-auto' :
-                  'grid-cols-3'
-                }`}>
-                  {rsvp.foodItems.map((item, index) => (
-                    <Card 
-                      key={index} 
-                      className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/20"
-                    >
-                      <CardContent className="p-5 text-center">
-                        <p className="text-lg font-medium text-slate-800 mb-2">{item.name}</p>
-                        {(item.isVegetarian || item.isVegan) && (
-                          <div className="flex justify-center gap-2 mt-2">
-                            {item.isVegetarian && (
-                              <Badge className="bg-green-50 text-green-700 border border-green-200 text-xs">
-                                <Leaf className="size-3 mr-1" />
-                                Vegetarisch
-                              </Badge>
-                            )}
-                            {item.isVegan && (
-                              <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs">
-                                <Leaf className="size-3 mr-1" />
-                                Vegan
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+            {rsvp.attending ? (
+              <>
+                <p className="text-base sm:text-lg text-slate-600 mb-3">
+                  {texts.greeting}{" "}
+                  <span className="font-semibold text-[#C6A75E]">
+                    {guest.name}
+                  </span>
+                  ,
+                </p>
+                <h1 className="text-3xl sm:text-4xl font-serif text-slate-800 mb-4">
+                  {texts.joyfulMessage}
+                </h1>
+                <p className="text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
+                  {texts.meaningMessage} {texts.excitedMessage}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-base sm:text-lg text-slate-600 mb-3">
+                  {texts.greeting}{" "}
+                  <span className="font-semibold text-[#C6A75E]">
+                    {guest.name}
+                  </span>
+                  ,
+                </p>
+                <h1 className="text-3xl sm:text-4xl font-serif text-slate-800 mb-4">
+                  {texts.sadMessage}
+                </h1>
+                <p className="text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
+                  {texts.sadMessageLong}
+                </p>
+              </>
             )}
-          </CardContent>
-        )}
-
-        {/* Trauzeugen Kontakt Section */}
-        <div className="bg-white p-8">
-          <div className="text-center mb-6">
-            <h3 className="text-xl font-serif text-slate-800 mb-2">Deine Ansprechpartner</h3>
-            <p className="text-sm text-slate-500">Bei Fragen kannst du dich gerne an unsere Trauzeugen wenden</p>
           </div>
-          
-          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            {/* Celli */}
-            <Card className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/20">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-[#C6A75E]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Heart className="size-8 text-[#C6A75E]" />
-                </div>
-                <p className="text-lg font-medium text-slate-800 mb-4">Celli</p>
-                <div className="flex gap-3 justify-center">
-                  <a
-                    href="https://wa.me/491234567890"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all shadow-sm"
-                  >
-                    <MessageCircle className="size-4" />
-                    <span className="text-sm font-medium">WhatsApp</span>
-                  </a>
-                  <a
-                    href="tel:+491234567890"
-                    className="flex items-center gap-2 px-4 py-2 bg-[#C6A75E] hover:bg-[#A3B18A] text-white rounded-lg transition-all shadow-sm"
-                  >
-                    <Phone className="size-4" />
-                    <span className="text-sm font-medium">Anrufen</span>
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Jenny */}
-            <Card className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/20">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-[#E8C7C8]/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Heart className="size-8 text-[#C6A75E]" />
+          <div className="bg-gradient-to-br from-[#F6F1E9] via-white to-[#E8C7C8]/10 px-6 sm:px-8 lg:px-10 py-8 sm:py-10 border-b border-[#E8C7C8]/30">
+            <div className="text-center space-y-5">
+              <div>
+                <p className="text-sm uppercase tracking-wider text-[#A3B18A] font-medium mb-2">
+                  Kirchliche Trauung
+                </p>
+                <h2 className="text-4xl sm:text-5xl font-serif text-[#C6A75E] mb-6">
+                  18. Juli 2026
+                </h2>
+              </div>
+
+              <div className="space-y-3 text-slate-700">
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-10 sm:w-20 h-px bg-[#E8C7C8]" />
+                  <p className="text-xl sm:text-2xl font-medium">14:00 Uhr</p>
+                  <div className="w-10 sm:w-20 h-px bg-[#E8C7C8]" />
                 </div>
-                <p className="text-lg font-medium text-slate-800 mb-4">Jenny</p>
-                <div className="flex gap-3 justify-center">
-                  <a
-                    href="https://wa.me/490987654321"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all shadow-sm"
-                  >
-                    <MessageCircle className="size-4" />
-                    <span className="text-sm font-medium">WhatsApp</span>
-                  </a>
-                  <a
-                    href="tel:+490987654321"
-                    className="flex items-center gap-2 px-4 py-2 bg-[#C6A75E] hover:bg-[#A3B18A] text-white rounded-lg transition-all shadow-sm"
-                  >
-                    <Phone className="size-4" />
-                    <span className="text-sm font-medium">Anrufen</span>
-                  </a>
+
+                <div className="pt-2">
+                  <p className="text-lg sm:text-xl font-medium text-slate-800">
+                    Echemer Kirche
+                  </p>
+                  <p className="text-base text-slate-600">An der Kirche</p>
+                  <p className="text-base text-slate-600">21379 Echem</p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
-        </div>
-      </Card>
-    </div>
-  );
+
+          {rsvp.attending && (
+            <CardContent className="px-6 sm:px-8 lg:px-10 py-8 sm:py-10 border-b border-[#E8C7C8]/30">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h3 className="text-2xl font-serif text-slate-800">
+                  {texts.yourDetails}
+                </h3>
+                <Button
+                  onClick={handleEditRSVP}
+                  variant="outline"
+                  className="border-2 border-[#C6A75E] text-[#A3B18A] hover:bg-[#C6A75E]/10 hover:border-[#A3B18A] px-4 py-2 text-sm font-medium"
+                >
+                  <Pencil className="size-4 mr-2" />
+                  Angaben ändern
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                <Card className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/30">
+                  <CardContent className="p-6 text-center">
+                    <Users className="size-10 text-[#C6A75E] mx-auto mb-3" />
+                    <p className="text-sm uppercase tracking-wide text-slate-500 mb-2">
+                      Anzahl Gäste
+                    </p>
+                    <p className="text-4xl font-light text-[#C6A75E] mb-1">
+                      {rsvp.numberOfGuests}
+                    </p>
+                    <p className="text-sm text-slate-600">
+                      {rsvp.numberOfGuests === 1 ? "Person" : "Personen"}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/30">
+                  <CardContent className="p-6 text-center">
+                    <Bed className="size-10 text-[#C6A75E] mx-auto mb-3" />
+                    <p className="text-sm uppercase tracking-wide text-slate-500 mb-2">
+                      Übernachtung
+                    </p>
+                    <p className="text-lg font-medium text-slate-800 mt-2">
+                      {rsvp.needsAccommodation
+                        ? "Ja, gerne"
+                        : "Nein, danke"}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {rsvp.foodItems && rsvp.foodItems.length > 0 && (
+                <div>
+                  <div className="text-center mb-6">
+                    <ChefHat className="size-10 text-[#C6A75E] mx-auto mb-2" />
+                    <p className="text-sm uppercase tracking-wide text-slate-500">
+                      {texts.yourBuffet}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`grid gap-4 mb-8 ${
+                      rsvp.foodItems.length === 1
+                        ? "grid-cols-1 max-w-md mx-auto"
+                        : rsvp.foodItems.length === 2
+                          ? "grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto"
+                          : "grid-cols-1 md:grid-cols-3"
+                    }`}
+                  >
+                    {rsvp.foodItems.map((item, index) => (
+                      <Card
+                        key={index}
+                        className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/20"
+                      >
+                        <CardContent className="p-5 text-center">
+                          <p className="text-lg font-medium text-slate-800 mb-2 break-words">
+                            {item.name}
+                          </p>
+                          {(item.isVegetarian || item.isVegan) && (
+                            <div className="flex justify-center gap-2 mt-2 flex-wrap">
+                              {item.isVegetarian && (
+                                <Badge className="bg-green-50 text-green-700 border border-green-200 text-xs">
+                                  <Leaf className="size-3 mr-1" />
+                                  Vegetarisch
+                                </Badge>
+                              )}
+                              {item.isVegan && (
+                                <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs">
+                                  <Leaf className="size-3 mr-1" />
+                                  Vegan
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          )}
+
+          <div className="bg-white px-6 sm:px-8 py-8">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-serif text-slate-800 mb-2">
+                {texts.partnerSectionTitle}
+              </h3>
+              <p className="text-sm text-slate-500">
+                {texts.partnerSectionText}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+              <Card className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/20">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 bg-[#C6A75E]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Heart className="size-8 text-[#C6A75E]" />
+                  </div>
+                  <p className="text-lg font-medium text-slate-800 mb-4">
+                    Celli
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <a
+                      href="https://wa.me/491234567890"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all shadow-sm"
+                    >
+                      <MessageCircle className="size-4" />
+                      <span className="text-sm font-medium">WhatsApp</span>
+                    </a>
+                    <a
+                      href="tel:+491234567890"
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-[#C6A75E] hover:bg-[#A3B18A] text-white rounded-lg transition-all shadow-sm"
+                    >
+                      <Phone className="size-4" />
+                      <span className="text-sm font-medium">Anrufen</span>
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/20">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 bg-[#E8C7C8]/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Heart className="size-8 text-[#C6A75E]" />
+                  </div>
+                  <p className="text-lg font-medium text-slate-800 mb-4">
+                    Jenny
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <a
+                      href="https://wa.me/490987654321"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all shadow-sm"
+                    >
+                      <MessageCircle className="size-4" />
+                      <span className="text-sm font-medium">WhatsApp</span>
+                    </a>
+                    <a
+                      href="tel:+490987654321"
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-[#C6A75E] hover:bg-[#A3B18A] text-white rounded-lg transition-all shadow-sm"
+                    >
+                      <Phone className="size-4" />
+                      <span className="text-sm font-medium">Anrufen</span>
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  };
 
   const renderBuffet = () => <BuffetView />;
   const renderGallery = () => <PhotobookGallery />;
   const renderTJA = () => <TJAView />;
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-20">
-        <Utensils className="size-12 text-rose-500 animate-pulse" />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white">
       {renderNavigation()}
-      <div className="py-8">
+      <div className="py-4 sm:py-8">
         {currentView === "invitation" && renderInvitation()}
         {currentView === "buffet" && renderBuffet()}
         {currentView === "gallery" && renderGallery()}
@@ -897,11 +1074,12 @@ export function GuestView() {
   );
 }
 
-// Buffet View Component
 function BuffetView() {
   const [buffetList, setBuffetList] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<'Alle' | 'Vorspeise' | 'Hauptspeise' | 'Nachspeise'>('Alle');
+  const [selectedCategory, setSelectedCategory] = useState<
+    "Alle" | "Vorspeise" | "Hauptspeise" | "Nachspeise"
+  >("Alle");
 
   useEffect(() => {
     loadBuffetList();
@@ -909,14 +1087,15 @@ function BuffetView() {
 
   const loadBuffetList = async () => {
     setIsLoading(true);
+
     try {
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-bda29bfd/buffet`,
         {
           headers: {
-            "Authorization": `Bearer ${publicAnonKey}`,
+            Authorization: `Bearer ${publicAnonKey}`,
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -931,66 +1110,69 @@ function BuffetView() {
     }
   };
 
-  // Gruppiere und sortiere Speisen nach Kategorien (alphabetisch)
   const categorizedBuffet = {
     Vorspeise: buffetList
-      .filter(item => item.category === 'Vorspeise')
-      .sort((a, b) => a.foodItem.localeCompare(b.foodItem, 'de')),
+      .filter((item) => item.category === "Vorspeise")
+      .sort((a, b) => a.foodItem.localeCompare(b.foodItem, "de")),
     Hauptspeise: buffetList
-      .filter(item => item.category === 'Hauptspeise')
-      .sort((a, b) => a.foodItem.localeCompare(b.foodItem, 'de')),
+      .filter((item) => item.category === "Hauptspeise")
+      .sort((a, b) => a.foodItem.localeCompare(b.foodItem, "de")),
     Nachspeise: buffetList
-      .filter(item => item.category === 'Nachspeise')
-      .sort((a, b) => a.foodItem.localeCompare(b.foodItem, 'de')),
+      .filter((item) => item.category === "Nachspeise")
+      .sort((a, b) => a.foodItem.localeCompare(b.foodItem, "de")),
   };
 
-  // Erstelle gefilterte Liste basierend auf Auswahl
   const getFilteredItems = () => {
-    if (selectedCategory === 'Alle') {
+    if (selectedCategory === "Alle") {
       return [
         ...categorizedBuffet.Vorspeise,
         ...categorizedBuffet.Hauptspeise,
         ...categorizedBuffet.Nachspeise,
       ];
     }
+
     return categorizedBuffet[selectedCategory];
   };
 
   const filteredItems = getFilteredItems();
 
-  // Bestimme welche Kategorien angezeigt werden sollen
-  const categoriesToShow = selectedCategory === 'Alle' 
-    ? (['Vorspeise', 'Hauptspeise', 'Nachspeise'] as const)
-    : ([selectedCategory] as const);
+  const categoriesToShow =
+    selectedCategory === "Alle"
+      ? (["Vorspeise", "Hauptspeise", "Nachspeise"] as const)
+      : ([selectedCategory] as const);
 
   return (
-    <div className="max-w-4xl mx-auto px-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6">
       <div className="text-center mb-8">
-        <h2 className="text-4xl font-serif text-slate-800">Unser Buffet</h2>
+        <h2 className="text-3xl sm:text-4xl font-serif text-slate-800">
+          Unser Buffet
+        </h2>
       </div>
 
-      {/* Category Tabs */}
       <div className="mb-8 flex justify-center">
-        <div className="inline-flex gap-2 bg-white p-2 rounded-lg border border-rose-200 shadow-sm">
-          {(['Alle', 'Vorspeise', 'Hauptspeise', 'Nachspeise'] as const).map((category) => {
-            const count = category === 'Alle' 
-              ? buffetList.length 
-              : categorizedBuffet[category]?.length || 0;
-            
+        <div className="inline-flex gap-2 bg-white p-2 rounded-lg border border-rose-200 shadow-sm overflow-x-auto max-w-full">
+          {(
+            ["Alle", "Vorspeise", "Hauptspeise", "Nachspeise"] as const
+          ).map((category) => {
+            const count =
+              category === "Alle"
+                ? buffetList.length
+                : categorizedBuffet[category]?.length || 0;
+
             return (
               <Button
                 key={category}
                 variant="ghost"
                 onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 rounded-md transition-all ${
+                className={`px-4 sm:px-6 py-2 rounded-md transition-all whitespace-nowrap ${
                   selectedCategory === category
                     ? "bg-rose-100 text-rose-700 shadow-sm"
                     : "text-slate-600 hover:bg-rose-50 hover:text-rose-600"
                 }`}
               >
                 <span className="font-medium">{category}</span>
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className={`ml-2 ${
                     selectedCategory === category
                       ? "border-rose-300 text-rose-700 bg-white"
@@ -1006,9 +1188,11 @@ function BuffetView() {
       </div>
 
       {filteredItems.length === 0 ? (
-        <Card className="p-12 text-center border border-slate-200">
+        <Card className="p-8 sm:p-12 text-center border border-slate-200">
           <ChefHat className="size-12 text-slate-300 mx-auto mb-4" />
-          <p className="text-lg text-slate-500">Noch keine Buffet-Beiträge in dieser Kategorie</p>
+          <p className="text-lg text-slate-500">
+            Noch keine Buffet-Beiträge in dieser Kategorie
+          </p>
         </Card>
       ) : (
         <div className="space-y-8">
@@ -1018,25 +1202,31 @@ function BuffetView() {
 
             return (
               <div key={category} className="space-y-3">
-                {/* Category Header */}
-                <div className="bg-gradient-to-r from-rose-100 via-pink-50 to-rose-50 px-5 py-3 rounded-lg border border-rose-200">
-                  <h3 className="text-xl font-serif text-slate-700 flex items-center justify-between">
+                <div className="bg-gradient-to-r from-rose-100 via-pink-50 to-rose-50 px-4 sm:px-5 py-3 rounded-lg border border-rose-200">
+                  <h3 className="text-lg sm:text-xl font-serif text-slate-700 flex items-center justify-between gap-3">
                     <span>{category}</span>
-                    <Badge variant="outline" className="border-rose-300 text-rose-700 bg-white">
-                      {items.length} {items.length === 1 ? 'Gericht' : 'Gerichte'}
+                    <Badge
+                      variant="outline"
+                      className="border-rose-300 text-rose-700 bg-white"
+                    >
+                      {items.length}{" "}
+                      {items.length === 1 ? "Gericht" : "Gerichte"}
                     </Badge>
                   </h3>
                 </div>
-                
-                {/* Category Items */}
+
                 <div className="space-y-2">
                   {items.map((item, index) => (
-                    <Card key={index} className="border border-rose-200 hover:border-rose-300 transition-all bg-white">
-                      <CardContent className="p-3">
+                    <Card
+                      key={index}
+                      className="border border-rose-200 hover:border-rose-300 transition-all bg-white"
+                    >
+                      <CardContent className="p-3 sm:p-4">
                         <div className="flex items-start gap-4">
-                          {/* Left: Food Name & Labels */}
                           <div className="flex-1 min-w-0 pr-2">
-                            <h4 className="text-base font-medium text-slate-800 mb-2 break-words">{item.foodItem}</h4>
+                            <h4 className="text-base font-medium text-slate-800 mb-2 break-words">
+                              {item.foodItem}
+                            </h4>
                             <div className="flex flex-wrap gap-1.5">
                               {item.isVegetarian && (
                                 <Badge className="bg-green-50 text-green-700 border border-green-200 text-xs font-normal">
@@ -1052,9 +1242,8 @@ function BuffetView() {
                               )}
                             </div>
                           </div>
-                          
-                          {/* Right: Chef Icon & Guest Name - Fixed width to keep alignment */}
-                          <div className="flex flex-col items-center gap-1 w-20 flex-shrink-0">
+
+                          <div className="flex flex-col items-center gap-1 w-16 sm:w-20 flex-shrink-0">
                             <ChefHat className="size-6 text-rose-300" />
                             <p className="text-xs text-slate-500 text-center break-words w-full leading-tight">
                               {item.guestName}
@@ -1071,11 +1260,11 @@ function BuffetView() {
         </div>
       )}
 
-      {/* Summary */}
       {filteredItems.length > 0 && (
         <div className="mt-6 text-center">
           <p className="text-sm text-slate-500">
-            Insgesamt {filteredItems.length} {filteredItems.length === 1 ? 'Gericht' : 'Gerichte'}
+            Insgesamt {filteredItems.length}{" "}
+            {filteredItems.length === 1 ? "Gericht" : "Gerichte"}
           </p>
         </div>
       )}
