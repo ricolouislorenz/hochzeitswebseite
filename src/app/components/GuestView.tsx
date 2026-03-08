@@ -131,7 +131,6 @@ export function GuestView() {
       guestCountQuestion: isPlural
         ? "Mit wie viel Personen (inklusive euch selbst) werdet ihr kommen?"
         : "Mit wie viel Personen (inklusive dir selbst) wirst du kommen?",
-      defaultGuestCount: isPlural ? 2 : 1,
       food: isPlural
         ? "Was möchtet ihr zum Buffet beitragen?"
         : "Was möchtest du zum Buffet beitragen?",
@@ -575,7 +574,9 @@ export function GuestView() {
                         onClick={() => {
                           setAttending(true);
                           if (numberOfGuests <= 0) {
-                            setNumberOfGuests(getDefaultGuestCount(guest.gender));
+                            setNumberOfGuests(
+                              getDefaultGuestCount(guest.gender),
+                            );
                           }
                         }}
                         className={`p-4 sm:p-5 border-2 rounded-xl cursor-pointer transition-all text-center ${
@@ -739,7 +740,9 @@ export function GuestView() {
                                           newItems[index] = {
                                             ...item,
                                             isVegetarian: !!checked,
-                                            isVegan: checked ? false : item.isVegan,
+                                            isVegan: checked
+                                              ? false
+                                              : item.isVegan,
                                           };
                                           setFoodItems(newItems);
                                         }}
@@ -856,47 +859,57 @@ export function GuestView() {
               </span>
             </div>
 
-<button
-  onClick={() => setCurrentView("invitation")}
-  className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-    currentView === "invitation"
-      ? "text-[#C6A75E] bg-[#C6A75E]/8"
-      : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
-  }`}
->
-  <Heart
-    className={`size-5 transition-all duration-200 ${
-      currentView === "invitation"
-        ? "fill-[#C6A75E]"
-        : "group-hover:fill-[#C6A75E]/30"
-    }`}
-  />
-  <span className="font-medium text-sm">Einladung</span>
-</button>
+            <button
+              onClick={() => navigate("/")}
+              className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
+            >
+              <LogOut className="size-4" />
+            </button>
+          </div>
 
-<button
-  onClick={() => setCurrentView("ceremony")}
-  className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-    currentView === "ceremony"
-      ? "text-[#C6A75E] bg-[#C6A75E]/8"
-      : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
-  }`}
->
-  <Clock3 className="size-5" />
-  <span className="font-medium text-sm">Ablauf</span>
-</button>
+          <div className="overflow-x-auto">
+            <div className="flex min-w-max gap-2 sm:gap-3 lg:gap-6">
+              <button
+                onClick={() => setCurrentView("invitation")}
+                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  currentView === "invitation"
+                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
+                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
+                }`}
+              >
+                <Heart
+                  className={`size-5 transition-all duration-200 ${
+                    currentView === "invitation"
+                      ? "fill-[#C6A75E]"
+                      : "group-hover:fill-[#C6A75E]/30"
+                  }`}
+                />
+                <span className="font-medium text-sm">Einladung</span>
+              </button>
 
-<button
-  onClick={() => setCurrentView("buffet")}
-  className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-    currentView === "buffet"
-      ? "text-[#C6A75E] bg-[#C6A75E]/8"
-      : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
-  }`}
->
-  <Utensils className="size-5" />
-  <span className="font-medium text-sm">Buffet</span>
-</button>
+              <button
+                onClick={() => setCurrentView("ceremony")}
+                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  currentView === "ceremony"
+                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
+                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
+                }`}
+              >
+                <Clock3 className="size-5" />
+                <span className="font-medium text-sm">Ablauf</span>
+              </button>
+
+              <button
+                onClick={() => setCurrentView("buffet")}
+                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  currentView === "buffet"
+                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
+                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
+                }`}
+              >
+                <Utensils className="size-5" />
+                <span className="font-medium text-sm">Buffet</span>
+              </button>
 
               <button
                 onClick={() => setCurrentView("gallery")}
@@ -1111,7 +1124,9 @@ export function GuestView() {
               <h3 className="text-xl font-serif text-slate-800 mb-2">
                 {texts.partnerSectionTitle}
               </h3>
-              <p className="text-sm text-slate-500">{texts.partnerSectionText}</p>
+              <p className="text-sm text-slate-500">
+                {texts.partnerSectionText}
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
