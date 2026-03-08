@@ -1,0 +1,17 @@
+# Cloudflare Pages Konfiguration
+name = "hochzeitswebseite"
+compatibility_date = "2024-01-01"
+
+# Pages Projekt
+pages_build_output_dir = "dist"
+
+# SPA Routing - alle Routen zu index.html umleiten
+[build]
+command = "npm run build"
+watch_dirs = ["src"]
+
+# Redirects für SPA
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
