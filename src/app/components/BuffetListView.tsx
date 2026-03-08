@@ -135,17 +135,14 @@ export function BuffetListView() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="text-center mb-6 sm:mb-8">
-          <h2 className="text-2xl sm:text-3xl font-serif text-slate-800 mb-2">
+          <h2 className="text-2xl sm:text-3xl font-serif text-slate-800">
             Was andere mitbringen
           </h2>
-          <p className="text-sm sm:text-base text-slate-500">
-            Alle bereits eingetragenen Buffet-Beiträge
-          </p>
         </div>
 
-        <div className="mb-6 sm:mb-8">
-          <div className="overflow-x-auto">
-            <div className="inline-flex min-w-max gap-2 bg-white p-2 rounded-lg border border-[#E8C7C8] shadow-sm mx-auto">
+        <div className="mb-6 sm:mb-8 w-full">
+          <div className="w-full overflow-x-auto">
+            <div className="flex w-full min-w-max gap-2 bg-white p-2 rounded-lg border border-[#DDB9BB] shadow-sm">
               {CATEGORY_OPTIONS.map((category) => {
                 const count =
                   category === "Alle"
@@ -157,10 +154,10 @@ export function BuffetListView() {
                     key={category}
                     variant="ghost"
                     onClick={() => setSelectedCategory(category)}
-                    className={`px-4 sm:px-6 py-2 rounded-md transition-all min-h-[44px] whitespace-nowrap ${
+                    className={`flex-1 min-h-[44px] px-4 sm:px-6 py-2 rounded-md transition-all whitespace-nowrap ${
                       selectedCategory === category
-                        ? "bg-[#E8C7C8]/30 text-[#A3B18A] shadow-sm"
-                        : "text-slate-600 hover:bg-[#E8C7C8]/10 hover:text-[#C6A75E]"
+                        ? "bg-[#DDB9BB] text-[#6F7E5D] shadow-sm"
+                        : "text-slate-700 hover:bg-[#F1E1E2] hover:text-[#A67C52]"
                     }`}
                   >
                     <span className="font-medium">{category}</span>
@@ -168,8 +165,8 @@ export function BuffetListView() {
                       variant="outline"
                       className={`ml-2 ${
                         selectedCategory === category
-                          ? "border-[#C6A75E] text-[#C6A75E] bg-white"
-                          : "border-slate-200 text-slate-500"
+                          ? "border-[#B98A45] text-[#B98A45] bg-white"
+                          : "border-slate-300 text-slate-600 bg-white"
                       }`}
                     >
                       {count}
@@ -199,15 +196,14 @@ export function BuffetListView() {
 
               return (
                 <div key={category} className="space-y-3">
-                  <div className="bg-gradient-to-r from-[#E8C7C8]/30 via-[#F6F1E9]/50 to-[#E8C7C8]/20 px-4 sm:px-5 py-3 rounded-lg border border-[#E8C7C8]">
-                    <h3 className="text-lg sm:text-xl font-serif text-slate-700 flex items-center justify-between gap-3">
+                  <div className="px-4 sm:px-5 py-3 rounded-lg border border-[#D4A7AA] bg-gradient-to-r from-[#E3B9BC] via-[#F3E6D8] to-[#E8C7C8] shadow-sm">
+                    <h3 className="text-lg sm:text-xl font-serif text-slate-800 flex items-center justify-between gap-3">
                       <span className="min-w-0 break-words">{category}</span>
                       <Badge
                         variant="outline"
-                        className="border-[#C6A75E] text-[#C6A75E] bg-white shrink-0"
+                        className="border-[#B98A45] text-[#8A6338] bg-white shrink-0"
                       >
-                        {items.length}{" "}
-                        {items.length === 1 ? "Gericht" : "Gerichte"}
+                        {items.length} {items.length === 1 ? "Gericht" : "Gerichte"}
                       </Badge>
                     </h3>
                   </div>
@@ -227,14 +223,14 @@ export function BuffetListView() {
 
                               <div className="flex flex-wrap gap-1.5">
                                 {item.isVegetarian && (
-                                  <Badge className="bg-green-50 text-green-700 border border-green-200 text-xs font-normal">
+                                  <Badge className="bg-green-50 text-green-700 border border-green-300 text-xs font-normal">
                                     <Leaf className="size-3 mr-1" />
                                     Vegetarisch
                                   </Badge>
                                 )}
 
                                 {item.isVegan && (
-                                  <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-normal">
+                                  <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-300 text-xs font-normal">
                                     <Leaf className="size-3 mr-1" />
                                     Vegan
                                   </Badge>
@@ -256,15 +252,6 @@ export function BuffetListView() {
                 </div>
               );
             })}
-          </div>
-        )}
-
-        {filteredItems.length > 0 && (
-          <div className="mt-6 text-center">
-            <p className="text-sm text-slate-500">
-              Insgesamt {filteredItems.length}{" "}
-              {filteredItems.length === 1 ? "Gericht" : "Gerichte"}
-            </p>
           </div>
         )}
       </div>
