@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   Heart,
@@ -59,6 +59,22 @@ const createEmptyFoodItem = (): FoodItem => ({
   category: "Hauptspeise",
 });
 
+const getDefaultGuestCount = (gender?: Guest["gender"]) =>
+  gender === "plural" ? 2 : 1;
+
+const normalizeFoodItemsForForm = (items?: FoodItem[]) => {
+  if (!Array.isArray(items) || items.length === 0) {
+    return [createEmptyFoodItem()];
+  }
+
+  return items.map((item) => ({
+    name: item?.name ?? "",
+    isVegetarian: !!item?.isVegetarian,
+    isVegan: !!item?.isVegan,
+    category: item?.category || "Hauptspeise",
+  }));
+};
+
 export function GuestView() {
   const navigate = useNavigate();
   const { code } = useParams<{ code: string }>();
@@ -74,10 +90,17 @@ export function GuestView() {
 
   const [attending, setAttending] = useState<boolean | null>(null);
   const [numberOfGuests, setNumberOfGuests] = useState(1);
-  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
+  const [foodItems, setFoodItems] = useState<FoodItem[]>([
+    createEmptyFoodItem(),
+  ]);
   const [needsAccommodation, setNeedsAccommodation] = useState(false);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const draftHydratedRef = useRef(false);
+
+  const draftStorageKey = code ? `guest-form-draft:${code}` : null;
+  const scrollStorageKey = code ? `guest-form-scroll:${code}` : null;
 
   const carouselImages = [
     "https://images.unsplash.com/photo-1759850845355-48359dba30e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVnYW50JTIwd2VkZGluZyUyMGNodXJjaCUyMGNlcmVtb255fGVufDF8fHx8MTc3Mjg5OTcxNnww&ixlib=rb-4.1.0&q=80&w=1080",
@@ -159,6 +182,30 @@ export function GuestView() {
     return () => clearInterval(interval);
   }, [carouselImages.length]);
 
+  useEffect(() => {
+    if (!draftStorageKey || !draftHydratedRef.current) return;
+    if (rsvp && !isEditing) return;
+
+    sessionStorage.setItem(
+      draftStorageKey,
+      JSON.stringify({
+        attending,
+        numberOfGuests,
+        foodItems,
+        needsAccommodation,
+        resumeForm: true,
+      }),
+    );
+  }, [
+    attending,
+    numberOfGuests,
+    foodItems,
+    needsAccommodation,
+    isEditing,
+    rsvp,
+    draftStorageKey,
+  ]);
+
   const loadGuestData = async () => {
     if (!code) return;
 
@@ -185,10 +232,11 @@ export function GuestView() {
         return;
       }
 
-      setGuest(guestData.guest);
-      setNumberOfGuests(
-        guestData.guest?.gender === "plural" ? 2 : 1,
-      );
+      const currentGuest = guestData.guest as Guest;
+      const defaultGuestCount = getDefaultGuestCount(currentGuest?.gender);
+
+      setGuest(currentGuest);
+      setNumberOfGuests(defaultGuestCount);
 
       const rsvpResponse = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-bda29bfd/guest/rsvp/${code}`,
@@ -201,16 +249,18 @@ export function GuestView() {
 
       const rsvpData = await rsvpResponse.json();
 
-      if (rsvpData.rsvp) {
-        const migratedRsvp = { ...rsvpData.rsvp };
+      let migratedRsvp: RSVP | null = null;
 
-        if (!migratedRsvp.foodItems && migratedRsvp.foodItem) {
+      if (rsvpData.rsvp) {
+        migratedRsvp = { ...rsvpData.rsvp };
+
+        if (!migratedRsvp.foodItems && (migratedRsvp as any).foodItem) {
           migratedRsvp.foodItems = [
             {
-              name: migratedRsvp.foodItem,
-              isVegetarian: migratedRsvp.isVegetarian || false,
-              isVegan: migratedRsvp.isVegan || false,
-              category: migratedRsvp.category || "Hauptspeise",
+              name: (migratedRsvp as any).foodItem,
+              isVegetarian: (migratedRsvp as any).isVegetarian || false,
+              isVegan: (migratedRsvp as any).isVegan || false,
+              category: (migratedRsvp as any).category || "Hauptspeise",
             },
           ];
         }
@@ -225,6 +275,59 @@ export function GuestView() {
 
         setRsvp(migratedRsvp);
       }
+
+      const savedDraft =
+        draftStorageKey && sessionStorage.getItem(draftStorageKey);
+
+      if (savedDraft) {
+        try {
+          const parsed = JSON.parse(savedDraft);
+
+          setAttending(
+            typeof parsed.attending === "boolean"
+              ? parsed.attending
+              : migratedRsvp?.attending ?? null,
+          );
+
+          setNumberOfGuests(
+            typeof parsed.numberOfGuests === "number" &&
+              parsed.numberOfGuests > 0
+              ? parsed.numberOfGuests
+              : migratedRsvp?.numberOfGuests || defaultGuestCount,
+          );
+
+          setFoodItems(normalizeFoodItemsForForm(parsed.foodItems));
+          setNeedsAccommodation(!!parsed.needsAccommodation);
+
+          if (migratedRsvp && parsed.resumeForm) {
+            setIsEditing(true);
+          }
+
+          const savedScroll =
+            scrollStorageKey && sessionStorage.getItem(scrollStorageKey);
+
+          if (savedScroll) {
+            const scrollY = Number(savedScroll);
+
+            if (!Number.isNaN(scrollY)) {
+              setTimeout(() => {
+                window.scrollTo({ top: scrollY, behavior: "auto" });
+              }, 0);
+            }
+
+            sessionStorage.removeItem(scrollStorageKey);
+          }
+        } catch (error) {
+          console.error("Error restoring draft:", error);
+          setFoodItems([createEmptyFoodItem()]);
+          setNumberOfGuests(defaultGuestCount);
+        }
+      } else if (!migratedRsvp) {
+        setFoodItems([createEmptyFoodItem()]);
+        setNumberOfGuests(defaultGuestCount);
+      }
+
+      draftHydratedRef.current = true;
     } catch (error) {
       console.error("Error loading guest data:", error);
       toast.error("Fehler beim Laden der Daten");
@@ -276,8 +379,21 @@ export function GuestView() {
       if (response.ok && data.success) {
         toast.success("Deine Rückmeldung wurde gespeichert!");
         setRsvp(data.rsvp);
-        setFoodItems(cleanedFoodItems);
+        setFoodItems(
+          cleanedFoodItems.length > 0
+            ? cleanedFoodItems
+            : [createEmptyFoodItem()],
+        );
         setIsEditing(false);
+
+        if (draftStorageKey) {
+          sessionStorage.removeItem(draftStorageKey);
+        }
+
+        if (scrollStorageKey) {
+          sessionStorage.removeItem(scrollStorageKey);
+        }
+
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         toast.error(data.error || "Fehler beim Speichern");
@@ -294,18 +410,34 @@ export function GuestView() {
     if (rsvp) {
       setAttending(rsvp.attending);
       setNumberOfGuests(
-        rsvp.numberOfGuests ||
-          (guest?.gender === "plural" ? 2 : 1),
+        rsvp.numberOfGuests || getDefaultGuestCount(guest?.gender),
       );
-      setFoodItems(
-        Array.isArray(rsvp.foodItems)
-          ? rsvp.foodItems.filter((item) => item?.name?.trim()?.length > 0)
-          : [],
-      );
+      setFoodItems(normalizeFoodItemsForForm(rsvp.foodItems));
       setNeedsAccommodation(rsvp.needsAccommodation);
     }
 
     setIsEditing(true);
+  };
+
+  const handleOpenBuffetOverview = () => {
+    if (draftStorageKey) {
+      sessionStorage.setItem(
+        draftStorageKey,
+        JSON.stringify({
+          attending,
+          numberOfGuests,
+          foodItems,
+          needsAccommodation,
+          resumeForm: true,
+        }),
+      );
+    }
+
+    if (scrollStorageKey) {
+      sessionStorage.setItem(scrollStorageKey, String(window.scrollY));
+    }
+
+    navigate("/buffet-view");
   };
 
   const addFoodItem = () => {
@@ -440,8 +572,8 @@ export function GuestView() {
                       <div
                         onClick={() => {
                           setAttending(true);
-                          if (numberOfGuests === 0) {
-                            setNumberOfGuests(texts.defaultGuestCount);
+                          if (numberOfGuests <= 0) {
+                            setNumberOfGuests(getDefaultGuestCount(guest.gender));
                           }
                         }}
                         className={`p-4 sm:p-5 border-2 rounded-xl cursor-pointer transition-all text-center ${
@@ -484,9 +616,7 @@ export function GuestView() {
                           <Button
                             type="button"
                             onClick={() =>
-                              setNumberOfGuests(
-                                Math.max(1, numberOfGuests - 1),
-                              )
+                              setNumberOfGuests(Math.max(1, numberOfGuests - 1))
                             }
                             className="bg-[#E8C7C8] hover:bg-[#C6A75E] text-white rounded-full w-11 h-11 sm:w-12 sm:h-12 p-0 shadow-sm"
                             disabled={numberOfGuests <= 1}
@@ -506,9 +636,7 @@ export function GuestView() {
                           <Button
                             type="button"
                             onClick={() =>
-                              setNumberOfGuests(
-                                Math.min(10, numberOfGuests + 1),
-                              )
+                              setNumberOfGuests(Math.min(10, numberOfGuests + 1))
                             }
                             className="bg-[#E8C7C8] hover:bg-[#C6A75E] text-white rounded-full w-11 h-11 sm:w-12 sm:h-12 p-0 shadow-sm"
                             disabled={numberOfGuests >= 10}
@@ -537,7 +665,7 @@ export function GuestView() {
                               type="button"
                               onClick={(e) => {
                                 e.preventDefault();
-                                navigate("/buffet-view");
+                                handleOpenBuffetOverview();
                               }}
                               className="w-full sm:w-auto bg-[#8FA07B] hover:bg-[#7D906A] text-white border border-[#8FA07B] shadow-sm"
                             >
@@ -558,107 +686,101 @@ export function GuestView() {
                           </div>
                         </div>
 
-                        {foodItems.length > 0 && (
-                          <div className="space-y-3">
-                            {foodItems.map((item, index) => (
-                              <Card
-                                key={index}
-                                className="border border-[#E6D7C8] bg-white relative"
-                              >
-                                <CardContent className="p-4 sm:p-5">
-                                  <div className="space-y-3">
-                                    {foodItems.length >= 1 && (
-                                      <div className="flex justify-end">
-                                        <Button
-                                          type="button"
-                                          onClick={() =>
-                                            setFoodItems(
-                                              foodItems.filter(
-                                                (_, i) => i !== index,
-                                              ),
-                                            )
-                                          }
-                                          variant="outline"
-                                          size="sm"
-                                          className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 h-9 w-9 p-0 rounded-full"
-                                        >
-                                          <Trash2 className="size-4" />
-                                        </Button>
-                                      </div>
-                                    )}
+                        <div className="space-y-3">
+                          {foodItems.map((item, index) => (
+                            <Card
+                              key={index}
+                              className="border border-[#E6D7C8] bg-white relative"
+                            >
+                              <CardContent className="p-4 sm:p-5">
+                                <div className="space-y-3">
+                                  {foodItems.length > 1 && (
+                                    <div className="flex justify-end">
+                                      <Button
+                                        type="button"
+                                        onClick={() =>
+                                          setFoodItems(
+                                            foodItems.filter((_, i) => i !== index),
+                                          )
+                                        }
+                                        variant="outline"
+                                        size="sm"
+                                        className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 h-9 w-9 p-0 rounded-full"
+                                      >
+                                        <Trash2 className="size-4" />
+                                      </Button>
+                                    </div>
+                                  )}
 
-                                    <Input
-                                      type="text"
-                                      value={item.name}
-                                      onChange={(e) => {
-                                        const newItems = [...foodItems];
-                                        newItems[index] = {
-                                          ...item,
-                                          name: e.target.value,
-                                        };
-                                        setFoodItems(newItems);
-                                      }}
-                                      placeholder={`Speise ${index + 1} (z. B. Nudelsalat, Obstkuchen)`}
-                                      className="text-base p-4 border border-slate-200 focus:border-[#C6A75E]"
-                                    />
+                                  <Input
+                                    type="text"
+                                    value={item.name}
+                                    onChange={(e) => {
+                                      const newItems = [...foodItems];
+                                      newItems[index] = {
+                                        ...item,
+                                        name: e.target.value,
+                                      };
+                                      setFoodItems(newItems);
+                                    }}
+                                    placeholder={`Speise ${index + 1} (z. B. Nudelsalat, Obstkuchen)`}
+                                    className="text-base p-4 border border-slate-200 focus:border-[#C6A75E]"
+                                  />
 
-                                    <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
-                                      <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                          id={`vegetarian-${index}`}
-                                          checked={item.isVegetarian}
-                                          onCheckedChange={(checked) => {
-                                            const newItems = [...foodItems];
-                                            newItems[index] = {
-                                              ...item,
-                                              isVegetarian: !!checked,
-                                              isVegan: checked
-                                                ? false
-                                                : item.isVegan,
-                                            };
-                                            setFoodItems(newItems);
-                                          }}
-                                        />
-                                        <Label
-                                          htmlFor={`vegetarian-${index}`}
-                                          className="cursor-pointer flex items-center gap-1 text-sm text-slate-600"
-                                        >
-                                          <Leaf className="size-3 text-green-500" />
-                                          Vegetarisch
-                                        </Label>
-                                      </div>
+                                  <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+                                    <div className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`vegetarian-${index}`}
+                                        checked={item.isVegetarian}
+                                        onCheckedChange={(checked) => {
+                                          const newItems = [...foodItems];
+                                          newItems[index] = {
+                                            ...item,
+                                            isVegetarian: !!checked,
+                                            isVegan: checked ? false : item.isVegan,
+                                          };
+                                          setFoodItems(newItems);
+                                        }}
+                                      />
+                                      <Label
+                                        htmlFor={`vegetarian-${index}`}
+                                        className="cursor-pointer flex items-center gap-1 text-sm text-slate-600"
+                                      >
+                                        <Leaf className="size-3 text-green-500" />
+                                        Vegetarisch
+                                      </Label>
+                                    </div>
 
-                                      <div className="flex items-center space-x-2">
-                                        <Checkbox
-                                          id={`vegan-${index}`}
-                                          checked={item.isVegan}
-                                          onCheckedChange={(checked) => {
-                                            const newItems = [...foodItems];
-                                            newItems[index] = {
-                                              ...item,
-                                              isVegan: !!checked,
-                                              isVegetarian: checked
-                                                ? false
-                                                : item.isVegetarian,
-                                            };
-                                            setFoodItems(newItems);
-                                          }}
-                                        />
-                                        <Label
-                                          htmlFor={`vegan-${index}`}
-                                          className="cursor-pointer flex items-center gap-1 text-sm text-slate-600"
-                                        >
-                                          <Leaf className="size-3 text-emerald-500" />
-                                          Vegan
-                                        </Label>
-                                      </div>
+                                    <div className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`vegan-${index}`}
+                                        checked={item.isVegan}
+                                        onCheckedChange={(checked) => {
+                                          const newItems = [...foodItems];
+                                          newItems[index] = {
+                                            ...item,
+                                            isVegan: !!checked,
+                                            isVegetarian: checked
+                                              ? false
+                                              : item.isVegetarian,
+                                          };
+                                          setFoodItems(newItems);
+                                        }}
+                                      />
+                                      <Label
+                                        htmlFor={`vegan-${index}`}
+                                        className="cursor-pointer flex items-center gap-1 text-sm text-slate-600"
+                                      >
+                                        <Leaf className="size-3 text-emerald-500" />
+                                        Vegan
+                                      </Label>
                                     </div>
                                   </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
@@ -922,9 +1044,7 @@ export function GuestView() {
                       Übernachtung
                     </p>
                     <p className="text-lg font-medium text-slate-800 mt-2">
-                      {rsvp.needsAccommodation
-                        ? "Ja, gerne"
-                        : "Nein, danke"}
+                      {rsvp.needsAccommodation ? "Ja, gerne" : "Nein, danke"}
                     </p>
                   </CardContent>
                 </Card>
@@ -987,9 +1107,7 @@ export function GuestView() {
               <h3 className="text-xl font-serif text-slate-800 mb-2">
                 {texts.partnerSectionTitle}
               </h3>
-              <p className="text-sm text-slate-500">
-                {texts.partnerSectionText}
-              </p>
+              <p className="text-sm text-slate-500">{texts.partnerSectionText}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
