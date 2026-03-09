@@ -9,16 +9,15 @@ import {
   Leaf,
   Image as ImageIcon,
   XCircle,
-  LogOut,
   Minus,
   Plus,
   Trash2,
-  Phone,
   MessageCircle,
   Sparkles,
   Pencil,
   Clock3,
 } from "lucide-react";
+import { GuestHeader } from "./GuestHeader";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Input } from "./ui/input";
@@ -105,11 +104,11 @@ export function GuestView() {
   const scrollStorageKey = code ? `guest-form-scroll:${code}` : null;
 
   const carouselImages = [
-    "https://images.unsplash.com/photo-1759850845355-48359dba30e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbGVnYW50JTIwd2VkZGluZyUyMGNodXJjaCUyMGNlcmVtb255fGVufDF8fHx8MTc3Mjg5OTcxNnww&ixlib=rb-4.1.0&q=80&w=1080",
-    "https://images.unsplash.com/photo-1771315021882-f881c02c6b3b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb21hbnRpYyUyMHdlZGRpbmclMjBjb3VwbGUlMjBjZWxlYnJhdGlvbnxlbnwxfHx8fDE3NzI4OTk3MTd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    "https://images.unsplash.com/photo-1767986012547-3fc29b18339f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwcmVjZXB0aW9uJTIwZWxlZ2FudCUyMGRlY29yfGVufDF8fHx8MTc3MjgxNDg4Mnww&ixlib=rb-4.1.0&q=80&w=1080",
-    "https://images.unsplash.com/photo-1649228167407-602c5437da82?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwcmluZ3MlMjBmbG93ZXJzJTIwYm91cXVldHxlbnwxfHx8fDE3NzI4OTk3MTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    "https://images.unsplash.com/photo-1762216444919-043cf813e4de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwdmVudWUlMjBvdXRkb29yJTIwZ2FyZGVufGVufDF8fHx8MTc3MjgzMjUwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+    "/images/einladung/1.jpg",
+    "/images/einladung/2.jpg",
+    "/images/einladung/3.jpg",
+    "/images/einladung/4.jpg",
+    "/images/einladung/5.jpg",
   ];
 
   const getTexts = (gender: "male" | "female" | "plural" = "male") => {
@@ -847,107 +846,6 @@ export function GuestView() {
     );
   }
 
-  const renderNavigation = () => (
-    <nav className="bg-white/95 backdrop-blur-md border-b border-[#E8C7C8]/30 sticky top-0 z-50 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <Heart className="size-5 sm:size-6 text-[#C6A75E] fill-[#C6A75E] shrink-0" />
-              <span className="text-lg sm:text-xl font-serif text-slate-800 truncate">
-                Unsere Hochzeit
-              </span>
-            </div>
-
-            <button
-              onClick={() => navigate("/")}
-              className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
-            >
-              <LogOut className="size-4" />
-            </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <div className="flex min-w-max gap-2 sm:gap-3 lg:gap-6">
-              <button
-                onClick={() => setCurrentView("invitation")}
-                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                  currentView === "invitation"
-                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
-                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
-                }`}
-              >
-                <Heart
-                  className={`size-5 transition-all duration-200 ${
-                    currentView === "invitation"
-                      ? "fill-[#C6A75E]"
-                      : "group-hover:fill-[#C6A75E]/30"
-                  }`}
-                />
-                <span className="font-medium text-sm">Einladung</span>
-              </button>
-
-              <button
-                onClick={() => setCurrentView("ceremony")}
-                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                  currentView === "ceremony"
-                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
-                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
-                }`}
-              >
-                <Clock3 className="size-5" />
-                <span className="font-medium text-sm">Ablauf</span>
-              </button>
-
-              <button
-                onClick={() => setCurrentView("buffet")}
-                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                  currentView === "buffet"
-                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
-                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
-                }`}
-              >
-                <Utensils className="size-5" />
-                <span className="font-medium text-sm">Buffet</span>
-              </button>
-
-              <button
-                onClick={() => setCurrentView("gallery")}
-                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                  currentView === "gallery"
-                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
-                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
-                }`}
-              >
-                <ImageIcon className="size-5" />
-                <span className="font-medium text-sm">Galerie</span>
-              </button>
-
-              <button
-                onClick={() => setCurrentView("tja")}
-                className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                  currentView === "tja"
-                    ? "text-[#C6A75E] bg-[#C6A75E]/8"
-                    : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
-                }`}
-              >
-                <Sparkles className="size-5" />
-                <span className="font-medium text-sm">Fotos teilen</span>
-              </button>
-            </div>
-          </div>
-
-          <button
-            onClick={() => navigate("/")}
-            className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
-          >
-            <LogOut className="size-4" />
-            <span className="text-sm font-medium">Abmelden</span>
-          </button>
-        </div>
-      </div>
-    </nav>
-  );
 
   const renderInvitation = () => {
     const texts = getTexts(guest.gender);
@@ -1138,7 +1036,7 @@ export function GuestView() {
                   <p className="text-lg font-medium text-slate-800 mb-4">
                     Celli
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <div className="flex justify-center">
                     <a
                       href="https://wa.me/491234567890"
                       target="_blank"
@@ -1147,13 +1045,6 @@ export function GuestView() {
                     >
                       <MessageCircle className="size-4" />
                       <span className="text-sm font-medium">WhatsApp</span>
-                    </a>
-                    <a
-                      href="tel:+491234567890"
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-[#C6A75E] hover:bg-[#A3B18A] text-white rounded-lg transition-all shadow-sm"
-                    >
-                      <Phone className="size-4" />
-                      <span className="text-sm font-medium">Anrufen</span>
                     </a>
                   </div>
                 </CardContent>
@@ -1167,7 +1058,7 @@ export function GuestView() {
                   <p className="text-lg font-medium text-slate-800 mb-4">
                     Jenny
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <div className="flex justify-center">
                     <a
                       href="https://wa.me/490987654321"
                       target="_blank"
@@ -1176,13 +1067,6 @@ export function GuestView() {
                     >
                       <MessageCircle className="size-4" />
                       <span className="text-sm font-medium">WhatsApp</span>
-                    </a>
-                    <a
-                      href="tel:+490987654321"
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-[#C6A75E] hover:bg-[#A3B18A] text-white rounded-lg transition-all shadow-sm"
-                    >
-                      <Phone className="size-4" />
-                      <span className="text-sm font-medium">Anrufen</span>
                     </a>
                   </div>
                 </CardContent>
@@ -1201,7 +1085,7 @@ export function GuestView() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white">
-      {renderNavigation()}
+      <GuestHeader currentView={currentView} onViewChange={setCurrentView} />
       <div className="py-4 sm:py-8">
         {currentView === "invitation" && renderInvitation()}
         {currentView === "ceremony" && renderCeremony()}

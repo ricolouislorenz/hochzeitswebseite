@@ -17,151 +17,71 @@ const photoPages: PhotoPage[] = [
   {
     id: 1,
     photos: [
-      {
-        image: "https://images.unsplash.com/photo-1594933878077-f15b1c406ebf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBmaXJzdCUyMG1lZXRpbmclMjBjb2ZmZWUlMjBzaG9wfGVufDF8fHx8MTc3Mjg5MTc4Nnww&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Das erste Treffen",
-        subtitle: "Sommer 2020"
-      },
-      {
-        image: "https://images.unsplash.com/photo-1553478124-633048459a83?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb21hbnRpYyUyMGNvdXBsZSUyMGZpcnN0JTIwZGF0ZSUyMHJlc3RhdXJhbnR8ZW58MXx8fHwxNzcyODkxNzg2fDA&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Das erste Date",
-        subtitle: "August 2020"
-      }
+      { image: "/images/galerie/1.jpg", title: "Das erste Treffen", subtitle: "Sommer 2020" },
+      { image: "/images/galerie/2.jpg", title: "Das erste Date", subtitle: "August 2020" }
     ]
   },
   {
     id: 2,
     photos: [
-      {
-        image: "https://images.unsplash.com/photo-1755121718992-fba1914ad5ca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBoa2luaW5nJTIwbW91bnRhYmluJTIwYWR2ZW50dXJlcxlufDF8fHx8MTc3Mjg5MTc4Nnww&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Gemeinsame Abenteuer",
-        subtitle: "Herbst 2020"
-      },
-      {
-        image: "https://images.unsplash.com/photo-1762872502191-42150bbf109f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBjaXR5JTIwdHJhdmVsJTIwZXhwbG9yaW5nfGVufDF8fHx8MTc3Mjg5MTc4N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Städtetrips",
-        subtitle: "Frühjahr 2021"
-      }
+      { image: "/images/galerie/3.jpg", title: "Gemeinsame Abenteuer", subtitle: "Herbst 2020" },
+      { image: "/images/galerie/4.jpg", title: "Städtetrips", subtitle: "Frühjahr 2021" }
     ]
   },
   {
     id: 3,
     photos: [
-      {
-        image: "https://images.unsplash.com/photo-1621797005674-48e0150206da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBiZWFjaCUyMHN1bnNldCUyMHJvbWFudGljfGVufDF8fHx8MTc3Mjg5MTc4N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Sonnenuntergänge am Meer",
-        subtitle: "Sommer 2021"
-      },
-      {
-        image: "https://images.unsplash.com/photo-1758522489456-96afe24741dc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBjb29raW5nJTIwdG9nZXRoZXIlMjBraXRjaGVufGVufDF8fHx8MTc3Mjg0NjE3OHww&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Alltag zu zweit",
-        subtitle: "Herbst 2021"
-      }
+      { image: "/images/galerie/5.jpg", title: "Sonnenuntergänge am Meer", subtitle: "Sommer 2021" },
+      { image: "/images/galerie/6.jpg", title: "Alltag zu zweit", subtitle: "Herbst 2021" }
     ]
   },
   {
     id: 4,
     photos: [
-      {
-        image: "https://images.unsplash.com/photo-1731936757627-f2a1ea5893e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBjaHJpc3RtYXMlMjB3aW50ZXIlMjBjb3p5fGVufDF8fHx8MTc3Mjg5MTc4OHww&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Erste Weihnachten",
-        subtitle: "Dezember 2021"
-      },
-      {
-        image: "https://images.unsplash.com/photo-1519741497674-611481863552?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwY2VyZW1vbnklMjByb21hbnRpYyUyMGNvdXBsZXxlbnwxfHx8fDE3NzI4OTU3NzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Familienfeier",
-        subtitle: "Frühjahr 2022"
-      }
+      { image: "/images/galerie/7.jpg", title: "Erste Weihnachten", subtitle: "Dezember 2021" },
+      { image: "/images/galerie/8.jpg", title: "Familienfeier", subtitle: "Frühjahr 2022" }
     ]
   },
   {
     id: 5,
     photos: [
-      {
-        image: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjByb2FkJTIwdHJpcCUyMGFkdmVudHVyZXxlbnwxfHx8fDE3NzI4OTU3NzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Roadtrip-Abenteuer",
-        subtitle: "Sommer 2022"
-      },
-      {
-        image: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBwaWNuaWMlMjBwYXJrJTIwcm9tYW50aWN8ZW58MXx8fHwxNzcyODk1NzcyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Picknick im Park",
-        subtitle: "Herbst 2022"
-      }
+      { image: "/images/galerie/9.jpg", title: "Roadtrip-Abenteuer", subtitle: "Sommer 2022" },
+      { image: "/images/galerie/10.jpg", title: "Picknick im Park", subtitle: "Herbst 2022" }
     ]
   },
   {
     id: 6,
     photos: [
-      {
-        image: "https://images.unsplash.com/photo-1513407030348-c983a97b98d8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBkYW5jaW5nJTIwcm9tYW50aWMlMjBob21lfGVufDF8fHx8MTc3Mjg5NTc3Mnww&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Tanzabend zu Hause",
-        subtitle: "Winter 2022"
-      },
-      {
-        image: "https://images.unsplash.com/photo-1464047736614-af63643285bf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBza2lpbmclMjB3aW50ZXIlMjBtb3VudGFibnxlbnwxfHx8fDE3NzI4OTU3NzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Winterurlaub",
-        subtitle: "Januar 2023"
-      }
+      { image: "/images/galerie/11.jpg", title: "Tanzabend zu Hause", subtitle: "Winter 2022" },
+      { image: "/images/galerie/12.jpg", title: "Winterurlaub", subtitle: "Januar 2023" }
     ]
   },
   {
     id: 7,
     photos: [
-      {
-        image: "https://images.unsplash.com/photo-1518568814500-bf0f8d125f46?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBjb2ZmZWUlMjBjYWZlJTIwZGF0ZXxlbnwxfHx8fDE3NzI4OTU3NzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Sonntags-Café-Ritual",
-        subtitle: "Frühjahr 2023"
-      },
-      {
-        image: "https://images.unsplash.com/photo-1502635385003-ee1e6a1a742d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBnYXJkZW5pbmclMjBob21lJTIwaGFwcHl8ZW58MXx8fHwxNzcyODk1Nzc0fDA&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Gartenarbeit",
-        subtitle: "Sommer 2023"
-      }
+      { image: "/images/galerie/13.jpg", title: "Sonntags-Café-Ritual", subtitle: "Frühjahr 2023" },
+      { image: "/images/galerie/14.jpg", title: "Gartenarbeit", subtitle: "Sommer 2023" }
     ]
   },
   {
     id: 8,
     photos: [
-      {
-        image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBjb25jZXJ0JTIwZmVzdGl2YWwlMjBtdXNpY3xlbnwxfHx8fDE3NzI4OTU3NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Konzertabend",
-        subtitle: "Herbst 2023"
-      },
-      {
-        image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwcHJlcGFyYXRpb24lMjBjb3VwbGV8ZW58MXx8fHwxNzcyODk1Nzc1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Jahresende-Feier",
-        subtitle: "Dezember 2023"
-      }
+      { image: "/images/galerie/15.jpg", title: "Konzertabend", subtitle: "Herbst 2023" },
+      { image: "/images/galerie/16.jpg", title: "Jahresende-Feier", subtitle: "Dezember 2023" }
     ]
   },
   {
     id: 9,
     photos: [
-      {
-        image: "https://images.unsplash.com/photo-1770022006937-0e43c0b66a7f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbmdhZ2VtZW50JTIwcmluZyUyMHByb3Bvc2FsJTIwcm9tYW50aWN8ZW58MXx8fHwxNzcyODkxNzg4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Der Antrag",
-        subtitle: "Frühjahr 2024"
-      },
-      {
-        image: "https://images.unsplash.com/photo-1766734864456-12497ffcdce0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBjZWxlYnJhdGluZyUyMGNoYW1wYWduZSUyMHRvYXN0fGVufDF8fHx8MTc3Mjg5MTc4OXww&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Verlobungsfeier",
-        subtitle: "Sommer 2024"
-      }
+      { image: "/images/galerie/17.jpg", title: "Der Antrag", subtitle: "Frühjahr 2024" },
+      { image: "/images/galerie/18.jpg", title: "Verlobungsfeier", subtitle: "Sommer 2024" }
     ]
   },
   {
     id: 10,
     photos: [
-      {
-        image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwcHJlcGFyYXRpb24lMjBleGNpdGVkJTIwY291cGxlfGVufDF8fHx8MTc3Mjg5NTc3Nnww&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Die letzten Vorbereitungen",
-        subtitle: "Frühjahr 2026"
-      },
-      {
-        image: "https://images.unsplash.com/photo-1769107299871-be6cd912323d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWRkaW5nJTIwcHJlcGFyYXRpb24lMjBsb3ZlJTIwZXhjaXRlZHxlbnwxfHx8fDE3NzI4OTE3ODl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-        title: "Bald ist es soweit!",
-        subtitle: "18. Juli 2026"
-      }
+      { image: "/images/galerie/19.jpg", title: "Die letzten Vorbereitungen", subtitle: "Frühjahr 2026" },
+      { image: "/images/galerie/20.jpg", title: "Bald ist es soweit!", subtitle: "18. Juli 2026" }
     ]
   }
 ];
