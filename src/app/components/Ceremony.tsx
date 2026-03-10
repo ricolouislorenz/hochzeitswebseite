@@ -1,4 +1,4 @@
-import { Heart, Clock3, Sparkles } from "lucide-react";
+import { Clock3 } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
 
 const timelineItems = [
@@ -15,32 +15,32 @@ const timelineItems = [
       "Wir feiern unsere Trauung gemeinsam in der Echemer Kirche.",
   },
   {
-    time: "15:00",
+    time: "anschließend",
     title: "Sektempfang",
     description:
       "Im Anschluss stoßen wir gemeinsam an und genießen die ersten Momente zusammen.",
   },
   {
-    time: "16:00",
-    title: "Zeit für Gespräche & Fotos",
+    time: "anschließend",
+    title: "Kaffee & Kuchen",
     description:
-      "Bevor es weitergeht, bleibt Zeit für Begegnungen, Fotos und ein entspanntes Ankommen.",
+      "Eine süße Pause mit Kaffee, Kuchen und guten Gesprächen.",
   },
   {
-    time: "18:00",
-    title: "Buffet",
+    time: "anschließend",
+    title: "Beisammensein & Fotos",
     description:
-      "Am Abend freuen wir uns auf ein gemeinsames Essen mit euren liebevoll mitgebrachten Beiträgen.",
+      "Zeit für Begegnungen, Erinnerungsfotos und ein entspanntes Miteinander.",
   },
   {
-    time: "20:00",
-    title: "Eröffnung des Abends",
+    time: "anschließend",
+    title: "Buffeteröffnung",
     description:
-      "Danach beginnt der gemütliche und festliche Teil des Abends.",
+      "Wir freuen uns auf ein gemeinsames Essen mit euren liebevoll mitgebrachten Beiträgen.",
   },
   {
-    time: "ab 20:30",
-    title: "Feiern",
+    time: "anschließend",
+    title: "Party",
     description:
       "Zum Abschluss möchten wir mit euch lachen, tanzen und einen unvergesslichen Abend verbringen.",
   },
@@ -50,31 +50,20 @@ export function Ceremony() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       <div className="text-center mb-8 sm:mb-10">
-        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#E8C7C8]/25 flex items-center justify-center mx-auto mb-4 sm:mb-5">
-          <Heart className="size-8 sm:size-10 text-[#C6A75E]" />
-        </div>
-
         <h2 className="text-3xl sm:text-4xl font-serif text-slate-800 mb-3">
           Ablauf
         </h2>
 
         <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-          Hier findet ihr den geplanten Ablauf unseres Hochzeitstages.
+          Bitte meldet euch bei unseren Trauzeugen, wenn ihr Programmpunkte einplanen wollt.
         </p>
       </div>
 
       <Card className="border border-[#E8C7C8] shadow-xl bg-gradient-to-br from-white via-[#F6F1E9]/35 to-white overflow-hidden rounded-[28px]">
         <CardContent className="p-5 sm:p-8 lg:p-10">
-          <div className="text-center mb-8 sm:mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F8F1E8] border border-[#E8D6C3] text-[#8A6A45]">
-              <Sparkles className="size-4" />
-              <span className="text-sm font-medium">Unser Hochzeitstag</span>
-            </div>
-          </div>
-
           <div className="space-y-4 sm:space-y-5">
             {timelineItems.map((item, index) => (
-              <div key={`${item.time}-${item.title}`}>
+              <div key={`${item.time}-${item.title}-${index}`}>
                 <div className="grid grid-cols-1 md:grid-cols-[120px_minmax(0,1fr)] gap-3 sm:gap-4 items-stretch">
                   <div className="flex md:justify-center">
                     <div className="inline-flex items-center gap-2 rounded-full border border-[#E5D2BE] bg-[#FFF9F2] px-4 py-2 text-[#8A6A45] min-h-[44px]">
