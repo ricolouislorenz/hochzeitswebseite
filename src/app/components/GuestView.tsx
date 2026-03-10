@@ -104,11 +104,11 @@ export function GuestView() {
   const scrollStorageKey = code ? `guest-form-scroll:${code}` : null;
 
   const carouselImages = [
-    "/images/einladung/1.jpg",
-    "/images/einladung/2.jpg",
-    "/images/einladung/3.jpg",
-    "/images/einladung/4.jpg",
-    "/images/einladung/5.jpg",
+    "/images/einladung/1.jpeg",
+    "/images/einladung/2.jpeg",
+    "/images/einladung/3.jpeg",
+    "/images/einladung/4.jpeg",
+    "/images/einladung/5.jpeg",
   ];
 
   const getTexts = (gender: "male" | "female" | "plural" = "male") => {
@@ -495,10 +495,17 @@ export function GuestView() {
                     index === currentImageIndex ? "opacity-100" : "opacity-0"
                   }`}
                 >
+                  {/* Blurred background fill for portrait photos */}
+                  <img
+                    src={image}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-70 pointer-events-none"
+                    aria-hidden="true"
+                  />
                   <img
                     src={image}
                     alt={`Wedding ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="relative w-full h-full object-contain"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#5B473A]/35 via-transparent to-transparent" />
                 </div>
@@ -682,7 +689,7 @@ export function GuestView() {
                                 className="w-full sm:w-auto bg-[#C6A75E] hover:bg-[#B48F48] text-white border border-[#C6A75E] shadow-sm"
                               >
                                 <Plus className="size-4 mr-2" />
-                                Hinzufügen
+                                Mehr Essen
                               </Button>
                             )}
                           </div>

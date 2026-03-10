@@ -17,71 +17,71 @@ const photoPages: PhotoPage[] = [
   {
     id: 1,
     photos: [
-      { image: "/images/galerie/1.jpg", title: "Das erste Treffen", subtitle: "Sommer 2020" },
-      { image: "/images/galerie/2.jpg", title: "Das erste Date", subtitle: "August 2020" }
+      { image: "/images/galerie/1.jpeg", title: "Das erste Treffen", subtitle: "Sommer 2020" },
+      { image: "/images/galerie/2.jpeg", title: "Das erste Date", subtitle: "August 2020" }
     ]
   },
   {
     id: 2,
     photos: [
-      { image: "/images/galerie/3.jpg", title: "Gemeinsame Abenteuer", subtitle: "Herbst 2020" },
-      { image: "/images/galerie/4.jpg", title: "Städtetrips", subtitle: "Frühjahr 2021" }
+      { image: "/images/galerie/3.jpeg", title: "Gemeinsame Abenteuer", subtitle: "Herbst 2020" },
+      { image: "/images/galerie/4.jpeg", title: "Städtetrips", subtitle: "Frühjahr 2021" }
     ]
   },
   {
     id: 3,
     photos: [
-      { image: "/images/galerie/5.jpg", title: "Sonnenuntergänge am Meer", subtitle: "Sommer 2021" },
-      { image: "/images/galerie/6.jpg", title: "Alltag zu zweit", subtitle: "Herbst 2021" }
+      { image: "/images/galerie/5.jpeg", title: "Sonnenuntergänge am Meer", subtitle: "Sommer 2021" },
+      { image: "/images/galerie/6.jpeg", title: "Alltag zu zweit", subtitle: "Herbst 2021" }
     ]
   },
   {
     id: 4,
     photos: [
-      { image: "/images/galerie/7.jpg", title: "Erste Weihnachten", subtitle: "Dezember 2021" },
-      { image: "/images/galerie/8.jpg", title: "Familienfeier", subtitle: "Frühjahr 2022" }
+      { image: "/images/galerie/7.jpeg", title: "Erste Weihnachten", subtitle: "Dezember 2021" },
+      { image: "/images/galerie/8.jpeg", title: "Familienfeier", subtitle: "Frühjahr 2022" }
     ]
   },
   {
     id: 5,
     photos: [
-      { image: "/images/galerie/9.jpg", title: "Roadtrip-Abenteuer", subtitle: "Sommer 2022" },
-      { image: "/images/galerie/10.jpg", title: "Picknick im Park", subtitle: "Herbst 2022" }
+      { image: "/images/galerie/9.jpeg", title: "Roadtrip-Abenteuer", subtitle: "Sommer 2022" },
+      { image: "/images/galerie/10.jpeg", title: "Picknick im Park", subtitle: "Herbst 2022" }
     ]
   },
   {
     id: 6,
     photos: [
-      { image: "/images/galerie/11.jpg", title: "Tanzabend zu Hause", subtitle: "Winter 2022" },
-      { image: "/images/galerie/12.jpg", title: "Winterurlaub", subtitle: "Januar 2023" }
+      { image: "/images/galerie/11.jpeg", title: "Tanzabend zu Hause", subtitle: "Winter 2022" },
+      { image: "/images/galerie/12.jpeg", title: "Winterurlaub", subtitle: "Januar 2023" }
     ]
   },
   {
     id: 7,
     photos: [
-      { image: "/images/galerie/13.jpg", title: "Sonntags-Café-Ritual", subtitle: "Frühjahr 2023" },
-      { image: "/images/galerie/14.jpg", title: "Gartenarbeit", subtitle: "Sommer 2023" }
+      { image: "/images/galerie/13.jpeg", title: "Sonntags-Café-Ritual", subtitle: "Frühjahr 2023" },
+      { image: "/images/galerie/14.jpeg", title: "Gartenarbeit", subtitle: "Sommer 2023" }
     ]
   },
   {
     id: 8,
     photos: [
-      { image: "/images/galerie/15.jpg", title: "Konzertabend", subtitle: "Herbst 2023" },
-      { image: "/images/galerie/16.jpg", title: "Jahresende-Feier", subtitle: "Dezember 2023" }
+      { image: "/images/galerie/15.jpeg", title: "Konzertabend", subtitle: "Herbst 2023" },
+      { image: "/images/galerie/16.jpeg", title: "Jahresende-Feier", subtitle: "Dezember 2023" }
     ]
   },
   {
     id: 9,
     photos: [
-      { image: "/images/galerie/17.jpg", title: "Der Antrag", subtitle: "Frühjahr 2024" },
-      { image: "/images/galerie/18.jpg", title: "Verlobungsfeier", subtitle: "Sommer 2024" }
+      { image: "/images/galerie/17.jpeg", title: "Der Antrag", subtitle: "Frühjahr 2024" },
+      { image: "/images/galerie/18.jpeg", title: "Verlobungsfeier", subtitle: "Sommer 2024" }
     ]
   },
   {
     id: 10,
     photos: [
-      { image: "/images/galerie/19.jpg", title: "Die letzten Vorbereitungen", subtitle: "Frühjahr 2026" },
-      { image: "/images/galerie/20.jpg", title: "Bald ist es soweit!", subtitle: "18. Juli 2026" }
+      { image: "/images/galerie/19.jpeg", title: "Die letzten Vorbereitungen", subtitle: "Frühjahr 2026" },
+      { image: "/images/galerie/20.jpeg", title: "Bald ist es soweit!", subtitle: "18. Juli 2026" }
     ]
   }
 ];
@@ -147,10 +147,17 @@ export function PhotobookGallery() {
               
               {/* Photo */}
               <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                {/* Blurred background fill for portrait photos */}
+                <ImageWithFallback
+                  src={photo.image}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover scale-110 blur-lg opacity-60 pointer-events-none"
+                  aria-hidden="true"
+                />
                 <ImageWithFallback
                   src={photo.image}
                   alt={photo.title}
-                  className="w-full h-full object-cover transition-all duration-300 md:group-hover:brightness-110"
+                  className="relative w-full h-full object-contain transition-all duration-300 md:group-hover:brightness-110"
                 />
               </div>
               
