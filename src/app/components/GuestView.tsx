@@ -1036,7 +1036,7 @@ export function GuestView() {
                 </div>
                 <p className="text-lg font-medium text-slate-800 mb-4">Celli</p>
                 <a
-                  href="https://wa.me/491234567890"
+                  href={`https://wa.me/${atob("KzQ5MTc3MjQyOTAxMA==")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#4E7B5A] hover:bg-[#3D6348] text-white rounded-lg transition-all shadow-sm text-sm font-medium"
@@ -1050,7 +1050,7 @@ export function GuestView() {
                 </div>
                 <p className="text-lg font-medium text-slate-800 mb-4">Jenny</p>
                 <a
-                  href="https://wa.me/490987654321"
+                  href={`https://wa.me/${atob("KzQ5MTUyNTI5NzExMjA=")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#4E7B5A] hover:bg-[#3D6348] text-white rounded-lg transition-all shadow-sm text-sm font-medium"
