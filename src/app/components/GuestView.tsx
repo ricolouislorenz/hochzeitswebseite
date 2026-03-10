@@ -99,6 +99,7 @@ export function GuestView() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const draftHydratedRef = useRef(false);
+  const scrollToTopAfterRenderRef = useRef(false);
 
   const draftStorageKey = code ? `guest-form-draft:${code}` : null;
   const scrollStorageKey = code ? `guest-form-scroll:${code}` : null;
@@ -167,12 +168,29 @@ export function GuestView() {
       partnerSectionText: isPlural
         ? "Bei Fragen könnt ihr euch gerne an unsere Trauzeugen wenden."
         : "Bei Fragen kannst du dich gerne an unsere Trauzeugen wenden.",
+      noFoodTitle: isPlural
+        ? "Ihr habt noch nichts zum Buffet eingetragen"
+        : "Du hast noch nichts zum Buffet eingetragen",
+      noFoodSubtext: isPlural
+        ? "Tragt gerne noch etwas zum Buffet bei – wir freuen uns über jeden Beitrag!"
+        : "Trag gerne noch etwas zum Buffet bei – wir freuen uns über jeden Beitrag!",
     };
   };
 
   useEffect(() => {
     loadGuestData();
   }, []);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentView]);
+
+  useEffect(() => {
+    if (scrollToTopAfterRenderRef.current) {
+      scrollToTopAfterRenderRef.current = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [rsvp, isEditing]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -394,7 +412,7 @@ export function GuestView() {
           sessionStorage.removeItem(scrollStorageKey);
         }
 
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        scrollToTopAfterRenderRef.current = true;
       } else {
         toast.error(data.error || "Fehler beim Speichern");
       }
@@ -417,6 +435,7 @@ export function GuestView() {
     }
 
     setIsEditing(true);
+    scrollToTopAfterRenderRef.current = true;
   };
 
   const handleOpenBuffetOverview = () => {
@@ -458,10 +477,10 @@ export function GuestView() {
 
   if (!guest) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white flex items-center justify-center p-4 sm:p-6">
+      <div className="min-h-screen bg-gradient-to-br from-[#F6F1E9] via-[#FAF5EF] to-[#FDFAF6] flex items-center justify-center p-4 sm:p-6">
         <Card className="w-full max-w-md border-2 border-[#E8C7C8]">
           <CardContent className="p-6 sm:p-8 text-center">
-            <XCircle className="size-14 sm:size-16 text-red-400 mx-auto mb-4" />
+            <XCircle className="size-14 sm:size-16 text-[#B85050] mx-auto mb-4" />
             <h2 className="text-2xl font-serif text-slate-800 mb-2">
               Gast nicht gefunden
             </h2>
@@ -486,7 +505,7 @@ export function GuestView() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#F6F1E9] via-[#E8C7C8]/20 to-white px-3 py-4 sm:px-4 sm:py-6">
         <div className="max-w-4xl mx-auto">
-          <Card className="border border-[#E8C7C8] shadow-[0_18px_60px_rgba(129,94,69,0.12)] overflow-hidden bg-white rounded-[28px]">
+          <Card className="border border-[#E8C7C8] shadow-[0_18px_60px_rgba(129,94,69,0.12)] overflow-hidden bg-[#FDFAF6] rounded-[28px]">
             <div className="relative h-64 sm:h-80 md:h-[26rem] overflow-hidden">
               {carouselImages.map((image, index) => (
                 <div
@@ -565,9 +584,7 @@ export function GuestView() {
               </div>
             </div>
 
-            <div className="h-4 sm:h-6 bg-gradient-to-b from-[#FBF3EA] to-white" />
-
-            <CardContent className="px-4 sm:px-8 lg:px-10 py-6 sm:py-8 bg-white">
+            <CardContent className="px-4 sm:px-8 lg:px-10 py-6 sm:py-8 bg-[#FDFAF6]">
               <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
                 <div className="rounded-2xl border border-[#EAD9C8] bg-[#FFFCF8] p-5 sm:p-6 shadow-sm">
                   <div className="space-y-4">
@@ -714,7 +731,7 @@ export function GuestView() {
                                         }
                                         variant="outline"
                                         size="sm"
-                                        className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 h-9 w-9 p-0 rounded-full"
+                                        className="border-[#D4A0A0] text-[#A33C3C] hover:bg-[#FAF0F0] hover:border-[#C08888] h-9 w-9 p-0 rounded-full"
                                       >
                                         <Trash2 className="size-4" />
                                       </Button>
@@ -757,7 +774,7 @@ export function GuestView() {
                                         htmlFor={`vegetarian-${index}`}
                                         className="cursor-pointer flex items-center gap-1 text-sm text-slate-600"
                                       >
-                                        <Leaf className="size-3 text-green-500" />
+                                        <Leaf className="size-3 text-[#6B8F5E]" />
                                         Vegetarisch
                                       </Label>
                                     </div>
@@ -782,7 +799,7 @@ export function GuestView() {
                                         htmlFor={`vegan-${index}`}
                                         className="cursor-pointer flex items-center gap-1 text-sm text-slate-600"
                                       >
-                                        <Leaf className="size-3 text-emerald-500" />
+                                        <Leaf className="size-3 text-[#5A7D50]" />
                                         Vegan
                                       </Label>
                                     </div>
@@ -859,225 +876,188 @@ export function GuestView() {
 
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <Card className="border border-[#E8C7C8] shadow-2xl bg-white overflow-hidden rounded-[28px]">
-          <div className="bg-gradient-to-br from-[#E8C7C8]/20 via-[#F6F1E9] to-white px-6 sm:px-10 lg:px-12 py-10 sm:py-12 text-center border-b border-[#E8C7C8]/30">
-            <Heart className="size-14 sm:size-16 text-[#C6A75E] mx-auto mb-6" />
+        <Card className="border border-[#E8C7C8] shadow-2xl bg-gradient-to-b from-[#F9F3EC] via-[#FDFAF6] to-[#F9F3EC] overflow-hidden rounded-[28px]">
 
+          {/* Hero */}
+          <div className="px-6 sm:px-10 lg:px-12 pt-10 sm:pt-14 pb-8 sm:pb-10 text-center">
+            <Heart className="size-12 sm:size-14 text-[#C6A75E] mx-auto mb-5" />
             {rsvp.attending ? (
               <>
-                <p className="text-base sm:text-lg text-slate-600 mb-3">
+                <p className="text-2xl sm:text-3xl font-serif text-slate-800 mb-3">
                   {texts.greeting}{" "}
-                  <span className="font-semibold text-[#C6A75E]">
-                    {guest.name}
-                  </span>
-                  ,
+                  <span className="text-[#C6A75E]">{guest.name}</span>,
                 </p>
-                <h1 className="text-3xl sm:text-4xl font-serif text-slate-800 mb-4">
+                <h1 className="text-2xl sm:text-3xl font-serif text-slate-800 mb-4 leading-snug">
                   {texts.joyfulMessage}
                 </h1>
-                <p className="text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
+                <p className="text-sm sm:text-base text-slate-500 leading-relaxed max-w-xl mx-auto">
                   {texts.meaningMessage} {texts.excitedMessage}
                 </p>
               </>
             ) : (
               <>
-                <p className="text-base sm:text-lg text-slate-600 mb-3">
+                <p className="text-2xl sm:text-3xl font-serif text-slate-800 mb-3">
                   {texts.greeting}{" "}
-                  <span className="font-semibold text-[#C6A75E]">
-                    {guest.name}
-                  </span>
-                  ,
+                  <span className="text-[#C6A75E]">{guest.name}</span>,
                 </p>
-                <h1 className="text-3xl sm:text-4xl font-serif text-slate-800 mb-4">
+                <h1 className="text-2xl sm:text-3xl font-serif text-slate-800 mb-4 leading-snug">
                   {texts.sadMessage}
                 </h1>
-                <p className="text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
+                <p className="text-sm sm:text-base text-slate-500 leading-relaxed max-w-xl mx-auto">
                   {texts.sadMessageLong}
                 </p>
               </>
             )}
           </div>
 
-          <div className="bg-gradient-to-br from-[#F6F1E9] via-white to-[#E8C7C8]/10 px-6 sm:px-8 lg:px-10 py-8 sm:py-10 border-b border-[#E8C7C8]/30">
-            <div className="text-center space-y-5">
-              <div>
-                <p className="text-sm uppercase tracking-wider text-[#A3B18A] font-medium mb-2">
-                  Kirchliche Trauung
-                </p>
-                <h2 className="text-4xl sm:text-5xl font-serif text-[#C6A75E] mb-6">
-                  18. Juli 2026
-                </h2>
-              </div>
+          {/* Divider */}
+          <div className="mx-8 sm:mx-12 h-px bg-gradient-to-r from-transparent via-[#D8C2AA] to-transparent" />
 
-              <div className="space-y-3 text-slate-700">
-                <div className="flex items-center justify-center gap-3">
-                  <div className="w-10 sm:w-20 h-px bg-[#E8C7C8]" />
-                  <p className="text-xl sm:text-2xl font-medium">14:00 Uhr</p>
-                  <div className="w-10 sm:w-20 h-px bg-[#E8C7C8]" />
-                </div>
-
-                <div className="pt-2">
-                  <p className="text-lg sm:text-xl font-medium text-slate-800">
-                    Echemer Kirche
-                  </p>
-                  <p className="text-base text-slate-600">An der Kirche</p>
-                  <p className="text-base text-slate-600">21379 Echem</p>
-                </div>
-              </div>
+          {/* Date & Location */}
+          <div className="px-6 sm:px-8 lg:px-10 py-8 sm:py-10 text-center">
+            <p className="text-xs uppercase tracking-[0.25em] text-[#A3B18A] font-medium mb-3">
+              Kirchliche Trauung
+            </p>
+            <h2 className="text-4xl sm:text-5xl font-serif text-[#C6A75E] mb-6">
+              18. Juli 2026
+            </h2>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="w-10 sm:w-20 h-px bg-[#E8C7C8]" />
+              <p className="text-xl sm:text-2xl font-medium text-slate-700">14:00 Uhr</p>
+              <div className="w-10 sm:w-20 h-px bg-[#E8C7C8]" />
             </div>
+            <p className="text-lg font-medium text-slate-800">Echemer Kirche</p>
+            <p className="text-sm text-slate-500">An der Kirche · 21379 Echem</p>
           </div>
 
           {rsvp.attending && (
-            <CardContent className="px-6 sm:px-8 lg:px-10 py-8 sm:py-10 border-b border-[#E8C7C8]/30">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                <h3 className="text-2xl font-serif text-slate-800">
-                  {texts.yourDetails}
-                </h3>
-                <Button
-                  onClick={handleEditRSVP}
-                  variant="outline"
-                  className="border-2 border-[#C6A75E] text-[#A3B18A] hover:bg-[#C6A75E]/10 hover:border-[#A3B18A] px-4 py-2 text-sm font-medium"
-                >
-                  <Pencil className="size-4 mr-2" />
-                  Angaben ändern
-                </Button>
-              </div>
+            <>
+              {/* Divider */}
+              <div className="mx-8 sm:mx-12 h-px bg-gradient-to-r from-transparent via-[#D8C2AA] to-transparent" />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                <Card className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/30">
-                  <CardContent className="p-6 text-center">
-                    <Users className="size-10 text-[#C6A75E] mx-auto mb-3" />
-                    <p className="text-sm uppercase tracking-wide text-slate-500 mb-2">
-                      Anzahl Gäste
-                    </p>
-                    <p className="text-4xl font-light text-[#C6A75E] mb-1">
-                      {rsvp.numberOfGuests}
-                    </p>
-                    <p className="text-sm text-slate-600">
-                      {rsvp.numberOfGuests === 1 ? "Person" : "Personen"}
-                    </p>
-                  </CardContent>
-                </Card>
+              {/* Details */}
+              <div className="px-6 sm:px-8 lg:px-10 py-8 sm:py-10">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7">
+                  <h3 className="text-2xl font-serif text-slate-800">{texts.yourDetails}</h3>
+                  <Button
+                    onClick={handleEditRSVP}
+                    variant="outline"
+                    className="border-2 border-[#C6A75E] text-[#C6A75E] hover:bg-[#C6A75E]/10 px-4 py-2 text-sm font-medium"
+                  >
+                    <Pencil className="size-4 mr-2" />
+                    Angaben ändern
+                  </Button>
+                </div>
 
-                <Card className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/30">
-                  <CardContent className="p-6 text-center">
-                    <Bed className="size-10 text-[#C6A75E] mx-auto mb-3" />
-                    <p className="text-sm uppercase tracking-wide text-slate-500 mb-2">
-                      Übernachtung
-                    </p>
-                    <p className="text-lg font-medium text-slate-800 mt-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                  <div className="rounded-2xl border border-[#E8C7C8]/70 bg-[#F6F1E9]/40 p-6 text-center">
+                    <Users className="size-9 text-[#C6A75E] mx-auto mb-3" />
+                    <p className="text-xs uppercase tracking-wide text-slate-400 mb-2">Anzahl Gäste</p>
+                    <p className="text-4xl font-light text-[#C6A75E] mb-1">{rsvp.numberOfGuests}</p>
+                    <p className="text-sm text-slate-500">{rsvp.numberOfGuests === 1 ? "Person" : "Personen"}</p>
+                  </div>
+                  <div className="rounded-2xl border border-[#E8C7C8]/70 bg-[#F6F1E9]/40 p-6 text-center">
+                    <Bed className="size-9 text-[#C6A75E] mx-auto mb-3" />
+                    <p className="text-xs uppercase tracking-wide text-slate-400 mb-2">Übernachtung</p>
+                    <p className="text-lg font-medium text-slate-700 mt-2">
                       {rsvp.needsAccommodation ? "Ja, gerne" : "Nein, danke"}
                     </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {rsvp.foodItems && rsvp.foodItems.length > 0 && (
-                <div>
-                  <div className="text-center mb-6">
-                    <ChefHat className="size-10 text-[#C6A75E] mx-auto mb-2" />
-                    <p className="text-sm uppercase tracking-wide text-slate-500">
-                      {texts.yourBuffet}
-                    </p>
                   </div>
+                </div>
 
-                  <div
-                    className={`grid gap-4 mb-8 ${
+                {rsvp.foodItems && rsvp.foodItems.length > 0 ? (
+                  <div>
+                    <div className="text-center mb-5">
+                      <ChefHat className="size-9 text-[#C6A75E] mx-auto mb-2" />
+                      <p className="text-xs uppercase tracking-wide text-slate-400">{texts.yourBuffet}</p>
+                    </div>
+                    <div className={`grid gap-3 ${
                       rsvp.foodItems.length === 1
                         ? "grid-cols-1 max-w-md mx-auto"
                         : rsvp.foodItems.length === 2
                           ? "grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto"
                           : "grid-cols-1 md:grid-cols-3"
-                    }`}
-                  >
-                    {rsvp.foodItems.map((item, index) => (
-                      <Card
-                        key={index}
-                        className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/20"
-                      >
-                        <CardContent className="p-5 text-center">
-                          <p className="text-lg font-medium text-slate-800 mb-2 break-words">
-                            {item.name}
-                          </p>
+                    }`}>
+                      {rsvp.foodItems.map((item, index) => (
+                        <div key={index} className="rounded-2xl border border-[#E8C7C8]/70 bg-[#F6F1E9]/40 p-5 text-center">
+                          <p className="text-base font-medium text-slate-800 mb-2 break-words">{item.name}</p>
                           {(item.isVegetarian || item.isVegan) && (
                             <div className="flex justify-center gap-2 mt-2 flex-wrap">
                               {item.isVegetarian && (
-                                <Badge className="bg-green-50 text-green-700 border border-green-200 text-xs">
-                                  <Leaf className="size-3 mr-1" />
-                                  Vegetarisch
+                                <Badge className="bg-[#EDF2E9] text-[#3D5E30] border border-[#B5C9AB] text-xs">
+                                  <Leaf className="size-3 mr-1" />Vegetarisch
                                 </Badge>
                               )}
                               {item.isVegan && (
-                                <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs">
-                                  <Leaf className="size-3 mr-1" />
-                                  Vegan
+                                <Badge className="bg-[#E6EDE2] text-[#2F5224] border border-[#A8BEA3] text-xs">
+                                  <Leaf className="size-3 mr-1" />Vegan
                                 </Badge>
                               )}
                             </div>
                           )}
-                        </CardContent>
-                      </Card>
-                    ))}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </CardContent>
+                ) : (
+                  <div className="text-center py-6 px-4 rounded-2xl border border-dashed border-[#D8C2AA]">
+                    <ChefHat className="size-8 text-[#C6A75E]/50 mx-auto mb-3" />
+                    <p className="text-base font-serif text-slate-600 mb-1">{texts.noFoodTitle}</p>
+                    <p className="text-sm text-slate-400 mb-5">
+                      {texts.noFoodSubtext}
+                    </p>
+                    <Button
+                      onClick={handleEditRSVP}
+                      className="bg-[#C6A75E] hover:bg-[#B48F48] text-white shadow-sm px-6"
+                    >
+                      <ChefHat className="size-4 mr-2" />
+                      Speise eintragen
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </>
           )}
 
-          <div className="bg-white px-6 sm:px-8 py-8">
+          {/* Divider */}
+          <div className="mx-8 sm:mx-12 h-px bg-gradient-to-r from-transparent via-[#D8C2AA] to-transparent" />
+
+          {/* Contact */}
+          <div className="px-6 sm:px-8 py-8 sm:py-10">
             <div className="text-center mb-6">
-              <h3 className="text-xl font-serif text-slate-800 mb-2">
-                {texts.partnerSectionTitle}
-              </h3>
-              <p className="text-sm text-slate-500">
-                {texts.partnerSectionText}
-              </p>
+              <h3 className="text-xl font-serif text-slate-800 mb-2">{texts.partnerSectionTitle}</h3>
+              <p className="text-sm text-slate-500">{texts.partnerSectionText}</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-              <Card className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/20">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 bg-[#C6A75E]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Heart className="size-8 text-[#C6A75E]" />
-                  </div>
-                  <p className="text-lg font-medium text-slate-800 mb-4">
-                    Celli
-                  </p>
-                  <div className="flex justify-center">
-                    <a
-                      href="https://wa.me/491234567890"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all shadow-sm"
-                    >
-                      <MessageCircle className="size-4" />
-                      <span className="text-sm font-medium">WhatsApp</span>
-                    </a>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border border-[#E8C7C8] bg-gradient-to-br from-white to-[#F6F1E9]/20">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 bg-[#E8C7C8]/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Heart className="size-8 text-[#C6A75E]" />
-                  </div>
-                  <p className="text-lg font-medium text-slate-800 mb-4">
-                    Jenny
-                  </p>
-                  <div className="flex justify-center">
-                    <a
-                      href="https://wa.me/490987654321"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-all shadow-sm"
-                    >
-                      <MessageCircle className="size-4" />
-                      <span className="text-sm font-medium">WhatsApp</span>
-                    </a>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+              <div className="rounded-2xl border border-[#E8C7C8]/70 bg-[#F6F1E9]/40 p-6 text-center">
+                <div className="w-14 h-14 bg-[#C6A75E]/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Heart className="size-7 text-[#C6A75E]" />
+                </div>
+                <p className="text-lg font-medium text-slate-800 mb-4">Celli</p>
+                <a
+                  href="https://wa.me/491234567890"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#4E7B5A] hover:bg-[#3D6348] text-white rounded-lg transition-all shadow-sm text-sm font-medium"
+                >
+                  <MessageCircle className="size-4" />WhatsApp
+                </a>
+              </div>
+              <div className="rounded-2xl border border-[#E8C7C8]/70 bg-[#F6F1E9]/40 p-6 text-center">
+                <div className="w-14 h-14 bg-[#E8C7C8]/40 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Heart className="size-7 text-[#C6A75E]" />
+                </div>
+                <p className="text-lg font-medium text-slate-800 mb-4">Jenny</p>
+                <a
+                  href="https://wa.me/490987654321"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#4E7B5A] hover:bg-[#3D6348] text-white rounded-lg transition-all shadow-sm text-sm font-medium"
+                >
+                  <MessageCircle className="size-4" />WhatsApp
+                </a>
+              </div>
             </div>
           </div>
         </Card>
@@ -1091,7 +1071,7 @@ export function GuestView() {
   const renderTJA = () => <TJAView />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-[#F6F1E9] via-[#FAF5EF] to-[#FDFAF6]">
       <GuestHeader currentView={currentView} onViewChange={setCurrentView} />
       <div className="py-4 sm:py-8">
         {currentView === "invitation" && renderInvitation()}
@@ -1180,7 +1160,7 @@ function BuffetView() {
       </div>
 
       <div className="mb-8 flex justify-center">
-        <div className="inline-flex gap-2 bg-white p-2 rounded-lg border border-rose-200 shadow-sm overflow-x-auto max-w-full">
+        <div className="inline-flex gap-2 bg-[#FDFAF6] p-2 rounded-lg border border-[#E8C7C8] shadow-sm overflow-x-auto max-w-full">
           {(
             ["Alle", "Vorspeise", "Hauptspeise", "Nachspeise"] as const
           ).map((category) => {
@@ -1196,8 +1176,8 @@ function BuffetView() {
                 onClick={() => setSelectedCategory(category)}
                 className={`px-4 sm:px-6 py-2 rounded-md transition-all whitespace-nowrap ${
                   selectedCategory === category
-                    ? "bg-rose-100 text-rose-700 shadow-sm"
-                    : "text-slate-600 hover:bg-rose-50 hover:text-rose-600"
+                    ? "bg-[#C6A75E] text-white shadow-sm"
+                    : "text-[#8A7060] hover:bg-[#F6F1E9] hover:text-[#C6A75E]"
                 }`}
               >
                 <span className="font-medium">{category}</span>
@@ -1205,8 +1185,8 @@ function BuffetView() {
                   variant="outline"
                   className={`ml-2 ${
                     selectedCategory === category
-                      ? "border-rose-300 text-rose-700 bg-white"
-                      : "border-slate-200 text-slate-500"
+                      ? "border-[#C6A75E] text-[#A88030] bg-white"
+                      : "border-[#D8C5B0] text-[#9A8070]"
                   }`}
                 >
                   {count}
@@ -1218,8 +1198,8 @@ function BuffetView() {
       </div>
 
       {filteredItems.length === 0 ? (
-        <Card className="p-8 sm:p-12 text-center border border-slate-200">
-          <ChefHat className="size-12 text-slate-300 mx-auto mb-4" />
+        <Card className="p-8 sm:p-12 text-center border border-[#E8C7C8] bg-[#FDFAF6]">
+          <ChefHat className="size-12 text-[#C6A75E]/40 mx-auto mb-4" />
           <p className="text-lg text-slate-500">
             Noch keine Buffet-Beiträge in dieser Kategorie
           </p>
@@ -1232,12 +1212,12 @@ function BuffetView() {
 
             return (
               <div key={category} className="space-y-3">
-                <div className="bg-gradient-to-r from-rose-100 via-pink-50 to-rose-50 px-4 sm:px-5 py-3 rounded-lg border border-rose-200">
+                <div className="bg-gradient-to-r from-[#F6F1E9] to-[#FAF5EF] px-4 sm:px-5 py-3 rounded-lg border border-[#E8C7C8]">
                   <h3 className="text-lg sm:text-xl font-serif text-slate-700 flex items-center justify-between gap-3">
                     <span>{category}</span>
                     <Badge
                       variant="outline"
-                      className="border-rose-300 text-rose-700 bg-white"
+                      className="border-[#C6A75E] text-[#8A6A30] bg-white"
                     >
                       {items.length}{" "}
                       {items.length === 1 ? "Gericht" : "Gerichte"}
@@ -1249,7 +1229,7 @@ function BuffetView() {
                   {items.map((item, index) => (
                     <Card
                       key={index}
-                      className="border border-rose-200 hover:border-rose-300 transition-all bg-white"
+                      className="border border-[#E8C7C8] hover:border-[#C6A75E] transition-all bg-[#FDFAF6]"
                     >
                       <CardContent className="p-3 sm:p-4">
                         <div className="flex items-start gap-4">
@@ -1259,13 +1239,13 @@ function BuffetView() {
                             </h4>
                             <div className="flex flex-wrap gap-1.5">
                               {item.isVegetarian && (
-                                <Badge className="bg-green-50 text-green-700 border border-green-200 text-xs font-normal">
+                                <Badge className="bg-[#EDF2E9] text-[#3D5E30] border border-[#B5C9AB] text-xs font-normal">
                                   <Leaf className="size-3 mr-1" />
                                   Vegetarisch
                                 </Badge>
                               )}
                               {item.isVegan && (
-                                <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-normal">
+                                <Badge className="bg-[#E6EDE2] text-[#2F5224] border border-[#A8BEA3] text-xs font-normal">
                                   <Leaf className="size-3 mr-1" />
                                   Vegan
                                 </Badge>
@@ -1274,7 +1254,7 @@ function BuffetView() {
                           </div>
 
                           <div className="flex flex-col items-center gap-1 w-16 sm:w-20 flex-shrink-0">
-                            <ChefHat className="size-6 text-rose-300" />
+                            <ChefHat className="size-6 text-[#C6A75E]/50" />
                             <p className="text-xs text-slate-500 text-center break-words w-full leading-tight">
                               {item.guestName}
                             </p>

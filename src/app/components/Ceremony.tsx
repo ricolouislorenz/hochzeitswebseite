@@ -75,7 +75,6 @@ export function Ceremony() {
                   </div>
 
                   <div className="relative">
-                    <div className="hidden md:block absolute left-[-18px] top-6 w-3 h-3 rounded-full bg-[#C6A75E] shadow-[0_0_0_6px_rgba(232,199,200,0.35)]" />
 
                     <div className="rounded-2xl border border-[#E8C7C8] bg-white/95 px-4 sm:px-5 py-4 sm:py-5 shadow-sm">
                       <h3 className="text-lg sm:text-xl font-serif text-slate-800 mb-2">
@@ -95,11 +94,6 @@ export function Ceremony() {
             ))}
           </div>
 
-          <div className="mt-8 sm:mt-10 text-center">
-            <p className="text-sm text-slate-400 italic">
-              Kleine zeitliche Änderungen sind natürlich noch möglich.
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
