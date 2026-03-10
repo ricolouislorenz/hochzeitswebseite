@@ -177,7 +177,7 @@ export function GuestView() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length);
-    }, 4000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [carouselImages.length]);
