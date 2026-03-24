@@ -46,7 +46,7 @@ const photoPages: PhotoPage[] = [
     id: 5,
     photos: [
       { image: "/images/galerie/9.jpeg", title: "Gemeinsames Tanzen", subtitle: "Wir üben schon mal" },
-      { image: "/images/galerie/10.jpeg", title: "?", subtitle: "?" }
+      { image: "/images/galerie/10.jpeg", title: "Mila hat sich schick gemacht", subtitle: "" }
     ]
   },
   {
@@ -60,7 +60,7 @@ const photoPages: PhotoPage[] = [
     id: 7,
     photos: [
       { image: "/images/galerie/13.jpeg", title: "Feiern in Chang Mai", subtitle: "Thailand 2023" },
-      { image: "/images/galerie/14.jpeg", title: "Besuch bei Max in Singapur", subtitle: "2023" }
+      { image: "/images/galerie/14.jpeg", title: "Besuch bei Michelle & Max", subtitle: "Singapur 2023" }
     ]
   },
   {
@@ -166,7 +166,7 @@ export function PhotobookGallery() {
                 <p className="text-lg font-serif text-slate-800 mb-1" style={{ fontFamily: "'Satisfy', cursive" }}>
                   {photo.title}
                 </p>
-                <p className="text-sm text-slate-500 min-h-[1.25rem]">
+                <p className="text-sm text-slate-500">
                   {photo.subtitle}
                 </p>
               </div>
