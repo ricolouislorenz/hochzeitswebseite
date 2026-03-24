@@ -166,7 +166,7 @@ export function PhotobookGallery() {
                 <p className="text-lg font-serif text-slate-800 mb-1" style={{ fontFamily: "'Satisfy', cursive" }}>
                   {photo.title}
                 </p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 min-h-[1.25rem]">
                   {photo.subtitle}
                 </p>
               </div>
