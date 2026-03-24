@@ -24,7 +24,7 @@ const photoPages: PhotoPage[] = [
   {
     id: 2,
     photos: [
-      { image: "/images/galerie/3.jpeg", title: "Schlittenfahren mit Kenai", subtitle: "Immer ein kleines Highlight" },
+      { image: "/images/galerie/3.jpeg", title: "Schlittenfahren mit Kenay", subtitle: "Immer ein kleines Highlight" },
       { image: "/images/galerie/4.jpeg", title: "Die Spazier-Gang", subtitle: "" }
     ]
   },
