@@ -32,7 +32,7 @@ const photoPages: PhotoPage[] = [
     id: 3,
     photos: [
       { image: "/images/galerie/5.jpeg", title: "Unser gemeinsames Gartenprojekt", subtitle: "Jedes Jahr ein bisschen schöner" },
-      { image: "/images/galerie/6.jpeg", title: "?", subtitle: "?" }
+      { image: "/images/galerie/6.jpeg", title: "Die Rätselprofis", subtitle: "" }
     ]
   },
   {
@@ -66,8 +66,8 @@ const photoPages: PhotoPage[] = [
   {
     id: 8,
     photos: [
-      { image: "/images/galerie/15.jpeg", title: "Wandern in Albanien" , subtitle: "Sommer 2025" },
-      { image: "/images/galerie/16.jpeg", title: "Brockenwanderung", subtitle: "Frühjahr 2025" }
+      { image: "/images/galerie/15.jpeg", title: "Gemeinsame Wanderurlaube" , subtitle: "" },
+      { image: "/images/galerie/16.jpeg", title: "Gerne auch mit Zelt", subtitle: "" }
     ]
   },
   {
@@ -80,8 +80,8 @@ const photoPages: PhotoPage[] = [
   {
     id: 10,
     photos: [
-      { image: "/images/galerie/19.jpeg", title: "?", subtitle: "?" },
-      { image: "/images/galerie/20.jpeg", title: "Das ist mal ein Brocken", subtitle: "?" }
+      { image: "/images/galerie/19.jpeg", title: "Wandern in Albanien", subtitle: "Sommer 2025" },
+      { image: "/images/galerie/20.jpeg", title: "Wandern im Harz", subtitle: "Das ist mal ein Brocken" }
     ]
   }
 ];
