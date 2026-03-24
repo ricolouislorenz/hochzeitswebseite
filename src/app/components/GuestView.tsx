@@ -899,7 +899,7 @@ export function GuestView() {
 
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <Card className="border border-[#E8C7C8] shadow-2xl bg-gradient-to-b from-[#F9F3EC] via-[#FDFAF6] to-[#F9F3EC] overflow-hidden rounded-[28px]">
+        <Card className="border border-[#E8C7C8] shadow-2xl bg-white overflow-hidden rounded-[28px]">
 
           {/* Hero */}
           <div className="px-6 sm:px-10 lg:px-12 pt-10 sm:pt-14 pb-8 sm:pb-10 text-center">

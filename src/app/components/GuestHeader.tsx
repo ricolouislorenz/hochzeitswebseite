@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Heart, Clock3, Utensils, Image as ImageIcon, Sparkles, LogOut } from "lucide-react";
+import { Heart, Clock3, Utensils, Image as ImageIcon, Sparkles, LogOut, Menu, X } from "lucide-react";
 
 type GuestView = "invitation" | "ceremony" | "buffet" | "gallery" | "tja";
 
@@ -18,60 +19,103 @@ const NAV_ITEMS: { view: GuestView; icon: React.ReactNode; label: string }[] = [
 
 export function GuestHeader({ currentView, onViewChange }: GuestHeaderProps) {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleNavClick = (view: GuestView) => {
+    onViewChange(view);
+    setMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("guestCode");
+    navigate("/");
+  };
 
   return (
     <nav className="bg-white/95 backdrop-blur-md border-b border-[#E8C7C8]/30 sticky top-0 z-50 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center justify-between min-[900px]:gap-6">
 
-          {/* Brand + mobile logout */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <Heart className="size-5 sm:size-6 text-[#C6A75E] fill-[#C6A75E] shrink-0" />
-              <span className="text-lg sm:text-xl font-serif text-slate-800 truncate">
-                Unsere Hochzeit
-              </span>
-            </div>
-            <button
-              onClick={() => navigate("/")}
-              className="lg:hidden flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
-            >
-              <LogOut className="size-4" />
-            </button>
+          {/* Brand */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Heart className="size-5 sm:size-6 text-[#C6A75E] fill-[#C6A75E] shrink-0" />
+            <span className="text-lg sm:text-xl font-serif text-slate-800 whitespace-nowrap">
+              Unsere Hochzeit
+            </span>
           </div>
 
-          {/* Navigation tabs */}
-          <div className="overflow-x-auto">
-            <div className="flex min-w-max gap-2 sm:gap-3 lg:gap-6">
-              {NAV_ITEMS.map(({ view, icon, label }) => {
-                const active = currentView === view;
-                return (
-                  <button
-                    key={view}
-                    onClick={() => onViewChange(view)}
-                    className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                      active
-                        ? "text-[#C6A75E] bg-[#C6A75E]/8"
-                        : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
-                    }`}
-                  >
-                    <span className={active ? "text-[#C6A75E]" : ""}>{icon}</span>
-                    <span className="font-medium text-sm">{label}</span>
-                  </button>
-                );
-              })}
-            </div>
+          {/* Desktop navigation */}
+          <div className="hidden min-[900px]:flex items-center gap-1">
+            {NAV_ITEMS.map(({ view, icon, label }) => {
+              const active = currentView === view;
+              return (
+                <button
+                  key={view}
+                  onClick={() => onViewChange(view)}
+                  className={`group flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
+                    active
+                      ? "text-[#C6A75E] bg-[#C6A75E]/8"
+                      : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
+                  }`}
+                >
+                  <span className={active ? "text-[#C6A75E]" : ""}>{icon}</span>
+                  <span className="font-medium text-sm">{label}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Desktop logout */}
           <button
-            onClick={() => navigate("/")}
-            className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
+            onClick={handleLogout}
+            className="hidden min-[900px]:flex items-center gap-2 px-4 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
           >
             <LogOut className="size-4" />
             <span className="text-sm font-medium">Abmelden</span>
           </button>
+
+          {/* Mobile burger button */}
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            className="min-[900px]:hidden p-2 rounded-lg text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5 transition-all duration-200"
+            aria-label="Menü öffnen"
+          >
+            {menuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
+          </button>
         </div>
+
+        {/* Mobile dropdown menu */}
+        {menuOpen && (
+          <div className="min-[900px]:hidden mt-3 pb-1 border-t border-[#E8C7C8]/40 pt-3 flex flex-col gap-1">
+            {NAV_ITEMS.map(({ view, icon, label }) => {
+              const active = currentView === view;
+              return (
+                <button
+                  key={view}
+                  onClick={() => handleNavClick(view)}
+                  className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 text-left w-full ${
+                    active
+                      ? "text-[#C6A75E] bg-[#C6A75E]/8"
+                      : "text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5"
+                  }`}
+                >
+                  <span className={active ? "text-[#C6A75E]" : ""}>{icon}</span>
+                  <span className="font-medium">{label}</span>
+                </button>
+              );
+            })}
+
+            <div className="mt-1 pt-2 border-t border-[#E8C7C8]/40">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-3 py-3 rounded-lg w-full text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
+              >
+                <LogOut className="size-5" />
+                <span className="font-medium">Abmelden</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
