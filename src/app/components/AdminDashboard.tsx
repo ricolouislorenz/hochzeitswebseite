@@ -21,6 +21,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Search,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -683,8 +684,13 @@ function BuffetView({ buffetItems, onUpdate }: { buffetItems: BuffetItem[]; onUp
 function GuestsView({ guests, stats, onUpdate }: { guests: Guest[], stats: DashboardStats | null, onUpdate: () => void }) {
   const [sortBy, setSortBy] = useState<"date" | "name">("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [search, setSearch] = useState("");
 
-  const sortedGuests = [...guests].sort((a, b) => {
+  const filteredGuests = search.trim()
+    ? guests.filter((g) => g.name.toLowerCase().includes(search.toLowerCase()) || g.code.includes(search))
+    : guests;
+
+  const sortedGuests = [...filteredGuests].sort((a, b) => {
     let cmp = 0;
     if (sortBy === "name") {
       cmp = a.name.localeCompare(b.name, "de");
@@ -984,6 +990,15 @@ function GuestsView({ guests, stats, onUpdate }: { guests: Guest[], stats: Dashb
           </div>
         </CardHeader>
         <CardContent>
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Nach Name oder Code suchen…"
+              className="pl-9 border-[#E8C7C8] focus:ring-[#C6A75E]"
+            />
+          </div>
           <div className="rounded-lg border border-[#E8C7C8] overflow-x-auto">
             <Table>
               <TableHeader>
