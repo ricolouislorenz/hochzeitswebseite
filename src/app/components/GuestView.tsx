@@ -89,6 +89,29 @@ export function GuestView() {
   >("invitation");
   const [isEditing, setIsEditing] = useState(false);
 
+  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const TIMEOUT_MS = 10 * 60 * 1000;
+
+    const resetTimer = () => {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+      inactivityTimerRef.current = setTimeout(() => {
+        localStorage.removeItem("guestCode");
+        navigate("/");
+      }, TIMEOUT_MS);
+    };
+
+    const events = ["mousemove", "mousedown", "keydown", "scroll", "touchstart"];
+    events.forEach((e) => window.addEventListener(e, resetTimer, { passive: true }));
+    resetTimer();
+
+    return () => {
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+      events.forEach((e) => window.removeEventListener(e, resetTimer));
+    };
+  }, [navigate]);
+
   const [attending, setAttending] = useState<boolean | null>(null);
   const [numberOfGuests, setNumberOfGuests] = useState(1);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([
@@ -1071,7 +1094,7 @@ export function GuestView() {
   const renderTJA = () => <TJAView />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F6F1E9] via-[#FAF5EF] to-[#FDFAF6]">
+    <div className="min-h-screen bg-gradient-to-br from-[#EDE0D4] via-[#F3E8E0] to-[#F7EEE6]">
       <GuestHeader currentView={currentView} onViewChange={setCurrentView} />
       <div className="py-4 sm:py-8">
         {currentView === "invitation" && renderInvitation()}
@@ -1270,14 +1293,6 @@ function BuffetView() {
         </div>
       )}
 
-      {filteredItems.length > 0 && (
-        <div className="mt-6 text-center">
-          <p className="text-sm text-slate-500">
-            Insgesamt {filteredItems.length}{" "}
-            {filteredItems.length === 1 ? "Gericht" : "Gerichte"}
-          </p>
-        </div>
-      )}
     </div>
   );
 }

@@ -17,7 +17,10 @@ import {
   Edit,
   Copy,
   RotateCcw,
-  Bed
+  Bed,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -678,6 +681,35 @@ function BuffetView({ buffetItems, onUpdate }: { buffetItems: BuffetItem[]; onUp
 
 // Guests View Component
 function GuestsView({ guests, stats, onUpdate }: { guests: Guest[], stats: DashboardStats | null, onUpdate: () => void }) {
+  const [sortBy, setSortBy] = useState<"date" | "name">("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  const sortedGuests = [...guests].sort((a, b) => {
+    let cmp = 0;
+    if (sortBy === "name") {
+      cmp = a.name.localeCompare(b.name, "de");
+    } else {
+      cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }
+    return sortOrder === "asc" ? cmp : -cmp;
+  });
+
+  const toggleSort = (field: "date" | "name") => {
+    if (sortBy === field) {
+      setSortOrder((o) => (o === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
+
+  const SortIcon = ({ field }: { field: "date" | "name" }) => {
+    if (sortBy !== field) return <ArrowUpDown className="size-3 ml-1 opacity-40" />;
+    return sortOrder === "asc"
+      ? <ArrowUp className="size-3 ml-1 text-[#C6A75E]" />
+      : <ArrowDown className="size-3 ml-1 text-[#C6A75E]" />;
+  };
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newGuestName, setNewGuestName] = useState("");
   const [newGuestGender, setNewGuestGender] = useState<'male' | 'female' | 'plural'>('male');
@@ -956,9 +988,26 @@ function GuestsView({ guests, stats, onUpdate }: { guests: Guest[], stats: Dashb
             <Table>
               <TableHeader>
                 <TableRow className="bg-[#F6F1E9]/50">
-                  <TableHead>Name</TableHead>
+                  <TableHead>
+                    <button
+                      onClick={() => toggleSort("name")}
+                      className="flex items-center hover:text-[#C6A75E] transition-colors"
+                    >
+                      Name
+                      <SortIcon field="name" />
+                    </button>
+                  </TableHead>
                   <TableHead>Code</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>
+                    <button
+                      onClick={() => toggleSort("date")}
+                      className="flex items-center hover:text-[#C6A75E] transition-colors"
+                    >
+                      Anlagedatum
+                      <SortIcon field="date" />
+                    </button>
+                  </TableHead>
                   <TableHead className="text-right">Aktionen</TableHead>
                 </TableRow>
               </TableHeader>
@@ -970,7 +1019,7 @@ function GuestsView({ guests, stats, onUpdate }: { guests: Guest[], stats: Dashb
                     </TableCell>
                   </TableRow>
                 ) : (
-                  guests.map((guest) => {
+                  sortedGuests.map((guest) => {
                     const rsvp = stats?.rsvps.find(r => r.code === guest.code);
                     return (
                       <TableRow key={guest.code}>
@@ -1006,6 +1055,13 @@ function GuestsView({ guests, stats, onUpdate }: { guests: Guest[], stats: Dashb
                               Abgesagt
                             </Badge>
                           )}
+                        </TableCell>
+                        <TableCell className="text-sm text-slate-500 whitespace-nowrap">
+                          {new Date(guest.createdAt).toLocaleDateString("de-DE", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">

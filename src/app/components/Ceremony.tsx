@@ -4,7 +4,7 @@ import { Card, CardContent } from "./ui/card";
 const timelineItems = [
   {
     time: "13:30",
-    title: "Ankommen",
+    title: "Ankommen an der Kirche",
     description:
       "Bitte plant etwas Zeit ein, damit ihr ganz entspannt ankommen könnt.",
   },
@@ -16,7 +16,7 @@ const timelineItems = [
   },
   {
     time: "anschließend",
-    title: "Sektempfang",
+    title: "Sektempfang bei uns auf dem Hof",
     description:
       "Im Anschluss stoßen wir gemeinsam an und genießen die ersten Momente zusammen.",
   },
@@ -24,7 +24,7 @@ const timelineItems = [
     time: "anschließend",
     title: "Kaffee & Kuchen",
     description:
-      "Eine süße Pause mit Kaffee, Kuchen und guten Gesprächen.",
+      "Eine Pause mit Kaffee, Kuchen und guten Gesprächen.",
   },
   {
     time: "anschließend",
@@ -55,7 +55,7 @@ export function Ceremony() {
         </h2>
 
         <p className="text-sm sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-          Bitte meldet euch bei unseren Trauzeugen, wenn ihr Programmpunkte einplanen wollt.
+          Bitte meldet euch bei unseren Trauzeugen, wenn ihr Programmpunkte einbringen wollt.
         </p>
       </div>
 

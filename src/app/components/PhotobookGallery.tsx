@@ -17,43 +17,43 @@ const photoPages: PhotoPage[] = [
   {
     id: 1,
     photos: [
-      { image: "/images/galerie/1.jpeg", title: "Das erste Treffen", subtitle: "Sommer 2020" },
-      { image: "/images/galerie/2.jpeg", title: "Das erste Date", subtitle: "August 2020" }
+      { image: "/images/galerie/1.jpeg", title: "Der erste Besuch in Echem", subtitle: "November 2021" },
+      { image: "/images/galerie/2.jpeg", title: "Spaziergang in Hamburg", subtitle: "Februar 2022" }
     ]
   },
   {
     id: 2,
     photos: [
-      { image: "/images/galerie/3.jpeg", title: "Gemeinsame Abenteuer", subtitle: "Herbst 2020" },
-      { image: "/images/galerie/4.jpeg", title: "Städtetrips", subtitle: "Frühjahr 2021" }
+      { image: "/images/galerie/3.jpeg", title: "Unser Garten", subtitle: "Jedes Jahr ein bisschen schöner" },
+      { image: "/images/galerie/4.jpeg", title: "Schlittenfahren mit Kenai", subtitle: "TBA" }
     ]
   },
   {
     id: 3,
     photos: [
-      { image: "/images/galerie/5.jpeg", title: "Sonnenuntergänge am Meer", subtitle: "Sommer 2021" },
-      { image: "/images/galerie/6.jpeg", title: "Alltag zu zweit", subtitle: "Herbst 2021" }
+      { image: "/images/galerie/5.jpeg", title: "Wanderurlaube sind toll", subtitle: "Im Harz" },
+      { image: "/images/galerie/6.jpeg", title: "Da darf Zelten natürlich nicht fehlen", subtitle: "auch wenn Füchse Essen klauen" }
     ]
   },
   {
     id: 4,
     photos: [
-      { image: "/images/galerie/7.jpeg", title: "Erste Weihnachten", subtitle: "Dezember 2021" },
-      { image: "/images/galerie/8.jpeg", title: "Familienfeier", subtitle: "Frühjahr 2022" }
+      { image: "/images/galerie/7.jpeg", title: "Familie Kolbeck", subtitle: "Mit Mila" },
+      { image: "/images/galerie/8.jpeg", title: "Familie Lorenz", subtitle: "bei Max Hochzeit" }
     ]
   },
   {
     id: 5,
     photos: [
-      { image: "/images/galerie/9.jpeg", title: "Roadtrip-Abenteuer", subtitle: "Sommer 2022" },
-      { image: "/images/galerie/10.jpeg", title: "Picknick im Park", subtitle: "Herbst 2022" }
+      { image: "/images/galerie/9.jpeg", title: "Sonnenaufgang auf dem Vulkan", subtitle: "auf Bali" },
+      { image: "/images/galerie/10.jpeg", title: "Elefanten/Rico putzen", subtitle: "in Thailand" }
     ]
   },
   {
     id: 6,
     photos: [
-      { image: "/images/galerie/11.jpeg", title: "Tanzabend zu Hause", subtitle: "Winter 2022" },
-      { image: "/images/galerie/12.jpeg", title: "Winterurlaub", subtitle: "Januar 2023" }
+      { image: "/images/galerie/11.jpeg", title: "Feiern in Thailand", subtitle: "Winter 2022" },
+      { image: "/images/galerie/12.jpeg", title: "Standardtanzen", subtitle: "Januar 2023" }
     ]
   },
   {
@@ -80,8 +80,8 @@ const photoPages: PhotoPage[] = [
   {
     id: 10,
     photos: [
-      { image: "/images/galerie/19.jpeg", title: "Die letzten Vorbereitungen", subtitle: "Frühjahr 2026" },
-      { image: "/images/galerie/20.jpeg", title: "Bald ist es soweit!", subtitle: "18. Juli 2026" }
+      { image: "/images/galerie/19.jpeg", title: "Rätselfüchse", subtitle: "Wir sind Smarties" },
+      { image: "/images/galerie/20.jpeg", title: "Die Verlobung", subtitle: "Oktober 2025" }
     ]
   }
 ];
