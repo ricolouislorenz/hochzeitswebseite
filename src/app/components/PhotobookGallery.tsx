@@ -17,71 +17,71 @@ const photoPages: PhotoPage[] = [
   {
     id: 1,
     photos: [
-      { image: "/images/galerie/1.jpeg", title: "Der erste Besuch in Echem", subtitle: "November 2021" },
+      { image: "/images/galerie/1.jpeg", title: "Ricos erster Besuch in Echem", subtitle: "November 2021" },
       { image: "/images/galerie/2.jpeg", title: "Spaziergang in Hamburg", subtitle: "Februar 2022" }
     ]
   },
   {
     id: 2,
     photos: [
-      { image: "/images/galerie/3.jpeg", title: "Unser Garten", subtitle: "Jedes Jahr ein bisschen schöner" },
-      { image: "/images/galerie/4.jpeg", title: "Schlittenfahren mit Kenai", subtitle: "TBA" }
+      { image: "/images/galerie/3.jpeg", title: "Schlittenfahren mit Kenai", subtitle: "Immer ein kleines Highlight" },
+      { image: "/images/galerie/4.jpeg", title: "Die Spazier-Gang", subtitle: "" }
     ]
   },
   {
     id: 3,
     photos: [
-      { image: "/images/galerie/5.jpeg", title: "Wanderurlaube sind toll", subtitle: "Im Harz" },
-      { image: "/images/galerie/6.jpeg", title: "Da darf Zelten natürlich nicht fehlen", subtitle: "auch wenn Füchse Essen klauen" }
+      { image: "/images/galerie/5.jpeg", title: "Unser gemeinsames Gartenprojekt", subtitle: "Jedes Jahr ein bisschen schöner" },
+      { image: "/images/galerie/6.jpeg", title: "?", subtitle: "?" }
     ]
   },
   {
     id: 4,
     photos: [
-      { image: "/images/galerie/7.jpeg", title: "Familie Kolbeck", subtitle: "Mit Mila" },
-      { image: "/images/galerie/8.jpeg", title: "Familie Lorenz", subtitle: "bei Max Hochzeit" }
+      { image: "/images/galerie/7.jpeg", title: "Familie Kolbeck", subtitle: "" },
+      { image: "/images/galerie/8.jpeg", title: "Familie Lorenz", subtitle: "" }
     ]
   },
   {
     id: 5,
     photos: [
-      { image: "/images/galerie/9.jpeg", title: "Sonnenaufgang auf dem Vulkan", subtitle: "auf Bali" },
-      { image: "/images/galerie/10.jpeg", title: "Elefanten/Rico putzen", subtitle: "in Thailand" }
+      { image: "/images/galerie/9.jpeg", title: "Gemeinsames Tanzen", subtitle: "Wir üben schon mal" },
+      { image: "/images/galerie/10.jpeg", title: "?", subtitle: "?" }
     ]
   },
   {
     id: 6,
     photos: [
-      { image: "/images/galerie/11.jpeg", title: "Feiern in Thailand", subtitle: "Winter 2022" },
-      { image: "/images/galerie/12.jpeg", title: "Standardtanzen", subtitle: "Januar 2023" }
+      { image: "/images/galerie/11.jpeg", title: "Sonnenaufgang auf einem Vulkan", subtitle: "auf Bali" },
+      { image: "/images/galerie/12.jpeg", title: "Waschtag für Rico", subtitle: "nicht nur für Elefanten" }
     ]
   },
   {
     id: 7,
     photos: [
-      { image: "/images/galerie/13.jpeg", title: "Sonntags-Café-Ritual", subtitle: "Frühjahr 2023" },
-      { image: "/images/galerie/14.jpeg", title: "Gartenarbeit", subtitle: "Sommer 2023" }
+      { image: "/images/galerie/13.jpeg", title: "Feiern in Chang Mai", subtitle: "Thailand 2023" },
+      { image: "/images/galerie/14.jpeg", title: "Besuch bei Max in Singapur", subtitle: "2023" }
     ]
   },
   {
     id: 8,
     photos: [
-      { image: "/images/galerie/15.jpeg", title: "Konzertabend", subtitle: "Herbst 2023" },
-      { image: "/images/galerie/16.jpeg", title: "Jahresende-Feier", subtitle: "Dezember 2023" }
+      { image: "/images/galerie/15.jpeg", title: "Wandern in Albanien" , subtitle: "Sommer 2025" },
+      { image: "/images/galerie/16.jpeg", title: "Brockenwanderung", subtitle: "Frühjahr 2025" }
     ]
   },
   {
     id: 9,
     photos: [
-      { image: "/images/galerie/17.jpeg", title: "Der Antrag", subtitle: "Frühjahr 2024" },
-      { image: "/images/galerie/18.jpeg", title: "Verlobungsfeier", subtitle: "Sommer 2024" }
+      { image: "/images/galerie/17.jpeg", title: "Norwegenurlaub", subtitle: "Herbst 2024" },
+      { image: "/images/galerie/18.jpeg", title: "Die Verlobung", subtitle: "Sie hat ja gesagt!" }
     ]
   },
   {
     id: 10,
     photos: [
-      { image: "/images/galerie/19.jpeg", title: "Rätselfüchse", subtitle: "Wir sind Smarties" },
-      { image: "/images/galerie/20.jpeg", title: "Die Verlobung", subtitle: "Oktober 2025" }
+      { image: "/images/galerie/19.jpeg", title: "?", subtitle: "?" },
+      { image: "/images/galerie/20.jpeg", title: "Das ist mal ein Brocken", subtitle: "?" }
     ]
   }
 ];
