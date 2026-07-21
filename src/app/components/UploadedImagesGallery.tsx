@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AlertCircle, Image as ImageIcon, LoaderCircle, RefreshCw, X } from "lucide-react";
+import { AlertCircle, Download, Image as ImageIcon, LoaderCircle, RefreshCw, X } from "lucide-react";
 import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 
 interface UploadedImage {
@@ -147,6 +147,15 @@ export function UploadedImagesGallery() {
       {fullscreen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={() => setFullscreen(null)}>
           <button type="button" aria-label="Vollbild schließen" onClick={() => setFullscreen(null)} className="absolute right-4 top-4 rounded-full bg-white/15 p-2 text-white hover:bg-white/25"><X className="size-7" /></button>
+          <a
+            href={fullscreen.url}
+            download={fullscreen.name}
+            onClick={(event) => event.stopPropagation()}
+            className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-lg transition-colors hover:bg-[#F6F1E9]"
+          >
+            <Download className="size-5" />
+            Herunterladen
+          </a>
           <img src={fullscreen.url} alt={fullscreen.name} className="max-h-full max-w-full object-contain" onClick={(event) => event.stopPropagation()} />
         </div>
       )}
