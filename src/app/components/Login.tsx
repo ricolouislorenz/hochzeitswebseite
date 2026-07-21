@@ -22,7 +22,7 @@ export function Login() {
     }
     
     if (code.length !== 7) {
-      toast.error("Bitte geben Sie einen 7-stelligen Code ein");
+      toast.error("Bitte gib deinen 7-stelligen Code ein");
       return;
     }
 
