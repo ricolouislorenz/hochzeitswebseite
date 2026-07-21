@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Heart, Clock3, Utensils, Image as ImageIcon, Sparkles, LogOut, Menu, X } from "lucide-react";
+import { Heart, Clock3, Utensils, Image as ImageIcon, Images, Upload, LogOut, Menu, X } from "lucide-react";
 
-type GuestView = "invitation" | "ceremony" | "buffet" | "gallery" | "tja";
+type GuestView = "invitation" | "ceremony" | "buffet" | "gallery" | "pictures" | "tja";
 
 interface GuestHeaderProps {
   currentView: GuestView;
@@ -14,7 +14,8 @@ const NAV_ITEMS: { view: GuestView; icon: React.ReactNode; label: string }[] = [
   { view: "ceremony",   icon: <Clock3 className="size-5" />, label: "Ablauf" },
   { view: "buffet",     icon: <Utensils className="size-5" />, label: "Buffet" },
   { view: "gallery",    icon: <ImageIcon className="size-5" />, label: "Galerie" },
-  { view: "tja",        icon: <Sparkles className="size-5" />, label: "Fotos teilen" },
+  { view: "tja",        icon: <Upload className="size-5" />, label: "Fotos hochladen" },
+  { view: "pictures",   icon: <Images className="size-5" />, label: "Bilder" },
 ];
 
 export function GuestHeader({ currentView, onViewChange }: GuestHeaderProps) {
@@ -34,7 +35,7 @@ export function GuestHeader({ currentView, onViewChange }: GuestHeaderProps) {
   return (
     <nav className="bg-white/95 backdrop-blur-md border-b border-[#E8C7C8]/30 sticky top-0 z-50 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex items-center justify-between min-[900px]:gap-6">
+        <div className="flex items-center justify-between min-[1100px]:gap-6">
 
           {/* Brand */}
           <div className="flex items-center gap-2 shrink-0">
@@ -45,7 +46,7 @@ export function GuestHeader({ currentView, onViewChange }: GuestHeaderProps) {
           </div>
 
           {/* Desktop navigation */}
-          <div className="hidden min-[900px]:flex items-center gap-1">
+          <div className="hidden min-[1100px]:flex items-center gap-1">
             {NAV_ITEMS.map(({ view, icon, label }) => {
               const active = currentView === view;
               return (
@@ -68,7 +69,7 @@ export function GuestHeader({ currentView, onViewChange }: GuestHeaderProps) {
           {/* Desktop logout */}
           <button
             onClick={handleLogout}
-            className="hidden min-[900px]:flex items-center gap-2 px-4 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
+            className="hidden min-[1100px]:flex items-center gap-2 px-4 py-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all duration-200"
           >
             <LogOut className="size-4" />
             <span className="text-sm font-medium">Abmelden</span>
@@ -77,7 +78,7 @@ export function GuestHeader({ currentView, onViewChange }: GuestHeaderProps) {
           {/* Mobile burger button */}
           <button
             onClick={() => setMenuOpen((o) => !o)}
-            className="min-[900px]:hidden p-2 rounded-lg text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5 transition-all duration-200"
+            className="min-[1100px]:hidden p-2 rounded-lg text-slate-600 hover:text-[#C6A75E] hover:bg-[#C6A75E]/5 transition-all duration-200"
             aria-label="Menü öffnen"
           >
             {menuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
@@ -86,7 +87,7 @@ export function GuestHeader({ currentView, onViewChange }: GuestHeaderProps) {
 
         {/* Mobile dropdown menu */}
         {menuOpen && (
-          <div className="min-[900px]:hidden mt-3 pb-1 border-t border-[#E8C7C8]/40 pt-3 flex flex-col gap-1">
+          <div className="min-[1100px]:hidden mt-3 pb-1 border-t border-[#E8C7C8]/40 pt-3 flex flex-col gap-1">
             {NAV_ITEMS.map(({ view, icon, label }) => {
               const active = currentView === view;
               return (

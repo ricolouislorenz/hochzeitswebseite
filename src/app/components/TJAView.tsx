@@ -86,15 +86,16 @@ async function createUploadSession(file: File, guestCode: string) {
   );
 
   const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data.uploadUrl) {
+  if (!response.ok || !data.sessionId) {
     throw new Error(data.error || "Der Upload konnte nicht vorbereitet werden.");
   }
 
-  return data.uploadUrl as string;
+  return data.sessionId as string;
 }
 
 function uploadChunk(
-  uploadUrl: string,
+  sessionId: string,
+  guestCode: string,
   chunk: Blob,
   start: number,
   fileSize: number,
@@ -103,7 +104,12 @@ function uploadChunk(
 ) {
   return new Promise<number>((resolve, reject) => {
     const request = new XMLHttpRequest();
-    request.open("PUT", uploadUrl);
+    request.open(
+      "PUT",
+      `https://${projectId}.supabase.co/functions/v1/make-server-bda29bfd/media/upload-chunk/${encodeURIComponent(sessionId)}`,
+    );
+    request.setRequestHeader("Authorization", `Bearer ${publicAnonKey}`);
+    request.setRequestHeader("X-Guest-Code", guestCode);
     request.setRequestHeader("Content-Type", mimeType);
     request.setRequestHeader("Content-Range", `bytes ${start}-${start + chunk.size - 1}/${fileSize}`);
 
@@ -112,13 +118,16 @@ function uploadChunk(
     };
 
     request.onload = () => {
-      if ([200, 201, 308].includes(request.status)) {
-        resolve(request.status);
+      const data = (() => {
+        try { return JSON.parse(request.responseText); } catch { return {}; }
+      })();
+      if (request.status === 200 && data.success) {
+        resolve(data.complete ? 200 : 308);
       } else {
-        reject(new Error(`Google Drive hat den Upload abgelehnt (${request.status}).`));
+        reject(new Error(data.error || `Der Upload wurde abgelehnt (${request.status}).`));
       }
     };
-    request.onerror = () => reject(new Error("Die Verbindung zu Google Drive wurde unterbrochen."));
+    request.onerror = () => reject(new Error("Die Verbindung zum Upload-Server wurde unterbrochen."));
     request.onabort = () => reject(new Error("Der Upload wurde abgebrochen."));
     request.send(chunk);
   });
@@ -126,7 +135,8 @@ function uploadChunk(
 
 async function uploadFileToDrive(
   file: File,
-  uploadUrl: string,
+  sessionId: string,
+  guestCode: string,
   onProgress: (progress: number) => void,
 ) {
   const mimeType = file.type || "application/octet-stream";
@@ -136,7 +146,8 @@ async function uploadFileToDrive(
     const end = Math.min(uploadedBytes + CHUNK_SIZE, file.size);
     const chunk = file.slice(uploadedBytes, end);
     const status = await uploadChunk(
-      uploadUrl,
+      sessionId,
+      guestCode,
       chunk,
       uploadedBytes,
       file.size,
@@ -195,8 +206,8 @@ export function TJAView() {
   const uploadOne = async (item: UploadItem, guestCode: string) => {
     updateItem(item.id, { status: "uploading", progress: 0, error: undefined });
     try {
-      const uploadUrl = await createUploadSession(item.file, guestCode);
-      await uploadFileToDrive(item.file, uploadUrl, (progress) => updateItem(item.id, { progress }));
+      const sessionId = await createUploadSession(item.file, guestCode);
+      await uploadFileToDrive(item.file, sessionId, guestCode, (progress) => updateItem(item.id, { progress }));
       updateItem(item.id, { status: "success", progress: 100 });
     } catch (error) {
       updateItem(item.id, {
@@ -236,10 +247,13 @@ export function TJAView() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       <div className="text-center mb-8 sm:mb-10">
         <Sparkles className="size-14 sm:size-16 text-[#C6A75E] mx-auto mb-4" />
-        <h2 className="text-3xl sm:text-4xl font-serif text-slate-800 mb-3">Fotos teilen</h2>
+        <h2 className="text-3xl sm:text-4xl font-serif text-slate-800 mb-3">Fotos hochladen</h2>
         <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
           Teilt eure schönsten Fotos, Videos und Erinnerungen mit uns. Eure Dateien werden sicher
           in unserem privaten Hochzeitsalbum gespeichert.
+        </p>
+        <p className="mt-2 text-sm text-slate-500">
+          Unterstützte Fotos werden anschließend für alle Gäste unter „Bilder“ angezeigt.
         </p>
       </div>
 

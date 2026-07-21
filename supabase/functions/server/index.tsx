@@ -12,8 +12,10 @@ const GOOGLE_REFRESH_TOKEN = Deno.env.get("GOOGLE_REFRESH_TOKEN");
 
 const MAX_IMAGE_OR_PDF_SIZE = 50 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 1024 * 1024 * 1024;
+const MAX_UPLOAD_CHUNK_SIZE = 8 * 1024 * 1024;
 const ALLOWED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "heic", "heif"];
 const ALLOWED_VIDEO_EXTENSIONS = ["mp4", "mov", "m4v"];
+const BROWSER_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 let cachedGoogleAccessToken: { token: string; expiresAt: number } | null = null;
 
@@ -94,7 +96,7 @@ app.use(
   "/*",
   cors({
     origin: "*",
-    allowHeaders: ["Content-Type", "Authorization"],
+    allowHeaders: ["Content-Type", "Authorization", "Content-Range", "X-Guest-Code"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
     maxAge: 600,
@@ -207,8 +209,8 @@ app.get("/make-server-bda29bfd/health", (c) => {
 });
 
 // Guest: Create a short-lived resumable upload session for Google Drive.
-// The file bytes are uploaded directly from the browser to Google and never
-// pass through this Edge Function.
+// The actual Google URL stays server-side because Drive's resumable upload
+// endpoint does not allow browser clients to read its CORS responses.
 app.post("/make-server-bda29bfd/media/upload-session", async (c) => {
   try {
     const { guestCode, fileName, mimeType, fileSize } = await c.req.json();
@@ -269,15 +271,191 @@ app.post("/make-server-bda29bfd/media/upload-session", async (c) => {
       throw new Error("Google Drive upload session could not be created");
     }
 
+    const sessionId = crypto.randomUUID();
+    await kv.set(`drive-upload:${sessionId}`, {
+      uploadUrl,
+      guestCode: String(guestCode),
+      fileSize: Number(fileSize),
+      mimeType: normalizedMimeType,
+      expiresAt: Date.now() + 60 * 60 * 1000,
+    });
+
     return c.json({
       success: true,
-      uploadUrl,
+      sessionId,
       fileName: driveFileName,
       expiresInSeconds: 3600,
     });
   } catch (error) {
     console.error(`Error creating Drive upload session: ${error}`);
     return c.json({ error: "Der Upload konnte nicht vorbereitet werden." }, 500);
+  }
+});
+
+// Guest: Forward one validated file chunk to the server-side Drive session.
+app.put("/make-server-bda29bfd/media/upload-chunk/:sessionId", async (c) => {
+  const sessionId = c.req.param("sessionId");
+  const sessionKey = `drive-upload:${sessionId}`;
+
+  try {
+    const session = await kv.get(sessionKey);
+    if (!session) {
+      return c.json({ error: "Die Upload-Sitzung wurde nicht gefunden oder ist abgelaufen." }, 404);
+    }
+
+    const guestCode = c.req.header("X-Guest-Code");
+    if (!guestCode || guestCode !== session.guestCode) {
+      return c.json({ error: "Der Gästecode ist nicht gültig." }, 401);
+    }
+
+    if (!Number.isFinite(session.expiresAt) || session.expiresAt < Date.now()) {
+      await kv.del(sessionKey);
+      return c.json({ error: "Die Upload-Sitzung ist abgelaufen. Bitte erneut starten." }, 410);
+    }
+
+    const contentRange = c.req.header("Content-Range") ?? "";
+    const rangeMatch = /^bytes (\d+)-(\d+)\/(\d+)$/.exec(contentRange);
+    if (!rangeMatch) {
+      return c.json({ error: "Der Dateibereich ist ungültig." }, 400);
+    }
+
+    const start = Number(rangeMatch[1]);
+    const end = Number(rangeMatch[2]);
+    const total = Number(rangeMatch[3]);
+    const expectedChunkSize = end - start + 1;
+    if (
+      total !== session.fileSize ||
+      start < 0 ||
+      end < start ||
+      end >= total ||
+      expectedChunkSize > MAX_UPLOAD_CHUNK_SIZE
+    ) {
+      return c.json({ error: "Der Dateibereich passt nicht zur Upload-Sitzung." }, 400);
+    }
+
+    const chunk = await c.req.arrayBuffer();
+    if (chunk.byteLength !== expectedChunkSize) {
+      return c.json({ error: "Der empfangene Dateiblock ist unvollständig." }, 400);
+    }
+
+    const driveResponse = await fetch(session.uploadUrl, {
+      method: "PUT",
+      redirect: "manual",
+      headers: {
+        "Content-Type": session.mimeType,
+        "Content-Range": contentRange,
+        "Content-Length": String(chunk.byteLength),
+      },
+      body: chunk,
+    });
+
+    if (![200, 201, 308].includes(driveResponse.status)) {
+      const details = await driveResponse.text();
+      console.error(`Drive chunk upload failed (${driveResponse.status}): ${details.slice(0, 500)}`);
+      return c.json({ error: `Google Drive hat den Dateiblock abgelehnt (${driveResponse.status}).` }, 502);
+    }
+
+    const complete = driveResponse.status === 200 || driveResponse.status === 201;
+    if (complete) await kv.del(sessionKey);
+
+    return c.json({ success: true, complete, googleStatus: driveResponse.status });
+  } catch (error) {
+    console.error(`Error forwarding Drive upload chunk: ${error}`);
+    return c.json({ error: "Der Dateiblock konnte nicht hochgeladen werden." }, 500);
+  }
+});
+
+// Guest: List browser-compatible images in the private wedding Drive folder.
+app.get("/make-server-bda29bfd/media/images", async (c) => {
+  try {
+    const guestCode = c.req.header("X-Guest-Code");
+    if (!guestCode || !(await kv.get(`guest:${guestCode}`))) {
+      return c.json({ error: "Der Gästecode ist nicht gültig." }, 401);
+    }
+    if (!DRIVE_FOLDER_ID) throw new Error("GOOGLE_DRIVE_FOLDER_ID is not configured");
+
+    const accessToken = await getGoogleAccessToken();
+    const query = new URLSearchParams({
+      q: `'${DRIVE_FOLDER_ID}' in parents and trashed = false`,
+      orderBy: "createdTime desc",
+      pageSize: "1000",
+      fields: "files(id,name,mimeType,createdTime)",
+    });
+    const driveResponse = await fetch(`https://www.googleapis.com/drive/v3/files?${query}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (!driveResponse.ok) {
+      const details = await driveResponse.text();
+      console.error(`Drive image list failed (${driveResponse.status}): ${details.slice(0, 500)}`);
+      throw new Error("Google Drive image list failed");
+    }
+
+    const data = await driveResponse.json();
+    const images = (Array.isArray(data.files) ? data.files : [])
+      .filter((file: any) => BROWSER_IMAGE_MIME_TYPES.has(file.mimeType))
+      .map((file: any) => ({
+        id: file.id,
+        name: file.name,
+        createdTime: file.createdTime,
+      }));
+
+    return c.json({ success: true, images });
+  } catch (error) {
+    console.error(`Error listing Drive images: ${error}`);
+    return c.json({ error: "Die Bilder konnten nicht geladen werden." }, 500);
+  }
+});
+
+// Guest: Stream one verified image from the private wedding Drive folder.
+app.get("/make-server-bda29bfd/media/images/:fileId", async (c) => {
+  try {
+    const guestCode = c.req.header("X-Guest-Code");
+    if (!guestCode || !(await kv.get(`guest:${guestCode}`))) {
+      return c.json({ error: "Der Gästecode ist nicht gültig." }, 401);
+    }
+    if (!DRIVE_FOLDER_ID) throw new Error("GOOGLE_DRIVE_FOLDER_ID is not configured");
+
+    const fileId = c.req.param("fileId");
+    if (!/^[A-Za-z0-9_-]+$/.test(fileId)) {
+      return c.json({ error: "Ungültige Bild-ID." }, 400);
+    }
+
+    const accessToken = await getGoogleAccessToken();
+    const metadataResponse = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?fields=id,mimeType,parents,trashed`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    if (!metadataResponse.ok) return c.json({ error: "Bild nicht gefunden." }, 404);
+
+    const metadata = await metadataResponse.json();
+    if (
+      metadata.trashed ||
+      !Array.isArray(metadata.parents) ||
+      !metadata.parents.includes(DRIVE_FOLDER_ID) ||
+      !BROWSER_IMAGE_MIME_TYPES.has(metadata.mimeType)
+    ) {
+      return c.json({ error: "Bild nicht gefunden." }, 404);
+    }
+
+    const imageResponse = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    if (!imageResponse.ok || !imageResponse.body) {
+      return c.json({ error: "Das Bild konnte nicht geladen werden." }, 502);
+    }
+
+    return new Response(imageResponse.body, {
+      status: 200,
+      headers: {
+        "Content-Type": metadata.mimeType,
+        "Cache-Control": "private, max-age=3600",
+      },
+    });
+  } catch (error) {
+    console.error(`Error streaming Drive image: ${error}`);
+    return c.json({ error: "Das Bild konnte nicht geladen werden." }, 500);
   }
 });
 

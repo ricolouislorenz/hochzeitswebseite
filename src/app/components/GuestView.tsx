@@ -28,6 +28,7 @@ import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 import { toast } from "sonner";
 import { PhotobookGallery } from "./PhotobookGallery";
 import { TJAView } from "./TJAView";
+import { UploadedImagesGallery } from "./UploadedImagesGallery";
 import { Ceremony } from "./Ceremony";
 
 interface Guest {
@@ -85,7 +86,7 @@ export function GuestView() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentView, setCurrentView] = useState<
-    "invitation" | "ceremony" | "buffet" | "gallery" | "tja"
+    "invitation" | "ceremony" | "buffet" | "gallery" | "pictures" | "tja"
   >("invitation");
   const [isEditing, setIsEditing] = useState(false);
 
@@ -1091,6 +1092,7 @@ export function GuestView() {
   const renderCeremony = () => <Ceremony />;
   const renderBuffet = () => <BuffetView />;
   const renderGallery = () => <PhotobookGallery />;
+  const renderPictures = () => <UploadedImagesGallery />;
   const renderTJA = () => <TJAView />;
 
   return (
@@ -1101,6 +1103,7 @@ export function GuestView() {
         {currentView === "ceremony" && renderCeremony()}
         {currentView === "buffet" && renderBuffet()}
         {currentView === "gallery" && renderGallery()}
+        {currentView === "pictures" && renderPictures()}
         {currentView === "tja" && renderTJA()}
       </div>
     </div>
