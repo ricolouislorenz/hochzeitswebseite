@@ -5,6 +5,87 @@ import * as kv from "./kv_store.tsx";
 
 const app = new Hono();
 
+const DRIVE_FOLDER_ID = Deno.env.get("GOOGLE_DRIVE_FOLDER_ID");
+const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID");
+const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET");
+const GOOGLE_REFRESH_TOKEN = Deno.env.get("GOOGLE_REFRESH_TOKEN");
+
+const MAX_IMAGE_OR_PDF_SIZE = 50 * 1024 * 1024;
+const MAX_VIDEO_SIZE = 1024 * 1024 * 1024;
+const ALLOWED_IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "heic", "heif"];
+const ALLOWED_VIDEO_EXTENSIONS = ["mp4", "mov", "m4v"];
+
+let cachedGoogleAccessToken: { token: string; expiresAt: number } | null = null;
+
+function getFileExtension(fileName: string): string {
+  return fileName.split(".").pop()?.toLowerCase() ?? "";
+}
+
+function validateMediaFile(fileName: string, mimeType: string, fileSize: number): string | null {
+  const extension = getFileExtension(fileName);
+  const isImage = mimeType.startsWith("image/") || ALLOWED_IMAGE_EXTENSIONS.includes(extension);
+  const isVideo = mimeType.startsWith("video/") || ALLOWED_VIDEO_EXTENSIONS.includes(extension);
+  const isPdf = mimeType === "application/pdf" || extension === "pdf";
+
+  if (!isImage && !isVideo && !isPdf) {
+    return "Dieser Dateityp wird nicht unterstützt.";
+  }
+
+  const maximumSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_OR_PDF_SIZE;
+  if (!Number.isFinite(fileSize) || fileSize <= 0 || fileSize > maximumSize) {
+    return isVideo
+      ? "Videos dürfen maximal 1 GB groß sein."
+      : "Fotos und PDFs dürfen maximal 50 MB groß sein.";
+  }
+
+  return null;
+}
+
+function sanitizeDriveFileName(fileName: string): string {
+  const cleaned = fileName
+    .normalize("NFKC")
+    .replace(/[\\/:*?"<>|\u0000-\u001F]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 180);
+
+  return cleaned || "Hochzeitsfoto";
+}
+
+async function getGoogleAccessToken(): Promise<string> {
+  if (cachedGoogleAccessToken && cachedGoogleAccessToken.expiresAt > Date.now() + 60_000) {
+    return cachedGoogleAccessToken.token;
+  }
+
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_REFRESH_TOKEN) {
+    throw new Error("Google OAuth secrets are not configured");
+  }
+
+  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      refresh_token: GOOGLE_REFRESH_TOKEN,
+      grant_type: "refresh_token",
+    }),
+  });
+
+  if (!tokenResponse.ok) {
+    console.error(`Google token request failed with status ${tokenResponse.status}`);
+    throw new Error("Google authorization failed");
+  }
+
+  const tokenData = await tokenResponse.json();
+  cachedGoogleAccessToken = {
+    token: tokenData.access_token,
+    expiresAt: Date.now() + Number(tokenData.expires_in ?? 3600) * 1000,
+  };
+
+  return cachedGoogleAccessToken.token;
+}
+
 // Enable logger
 app.use('*', logger(console.log));
 
@@ -123,6 +204,81 @@ async function generateUniqueGuestCode(): Promise<string> {
 // Health check endpoint
 app.get("/make-server-bda29bfd/health", (c) => {
   return c.json({ status: "ok" });
+});
+
+// Guest: Create a short-lived resumable upload session for Google Drive.
+// The file bytes are uploaded directly from the browser to Google and never
+// pass through this Edge Function.
+app.post("/make-server-bda29bfd/media/upload-session", async (c) => {
+  try {
+    const { guestCode, fileName, mimeType, fileSize } = await c.req.json();
+
+    if (!guestCode || !fileName || !Number.isFinite(Number(fileSize))) {
+      return c.json({ error: "Unvollständige Upload-Anfrage." }, 400);
+    }
+
+    const guest = await kv.get(`guest:${guestCode}`);
+    if (!guest) {
+      return c.json({ error: "Der Gästecode ist nicht gültig." }, 401);
+    }
+
+    const normalizedMimeType = typeof mimeType === "string" && mimeType
+      ? mimeType.toLowerCase()
+      : "application/octet-stream";
+    const validationError = validateMediaFile(fileName, normalizedMimeType, Number(fileSize));
+    if (validationError) {
+      return c.json({ error: validationError }, 400);
+    }
+
+    if (!DRIVE_FOLDER_ID) {
+      throw new Error("GOOGLE_DRIVE_FOLDER_ID is not configured");
+    }
+
+    const accessToken = await getGoogleAccessToken();
+    const safeOriginalName = sanitizeDriveFileName(fileName);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const uniqueSuffix = crypto.randomUUID().slice(0, 8);
+    const driveFileName = `${timestamp}_${uniqueSuffix}_${safeOriginalName}`;
+
+    const driveResponse = await fetch(
+      "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json; charset=UTF-8",
+          "X-Upload-Content-Type": normalizedMimeType,
+          "X-Upload-Content-Length": String(fileSize),
+        },
+        body: JSON.stringify({
+          name: driveFileName,
+          parents: [DRIVE_FOLDER_ID],
+          appProperties: {
+            source: "hochzeitswebseite",
+            guestCode: String(guestCode),
+          },
+          description: `Hochgeladen über die Hochzeitswebseite von ${guest.name ?? "einem Gast"}.`,
+        }),
+      },
+    );
+
+    const uploadUrl = driveResponse.headers.get("Location");
+    if (!driveResponse.ok || !uploadUrl) {
+      const details = await driveResponse.text();
+      console.error(`Drive upload session failed (${driveResponse.status}): ${details.slice(0, 500)}`);
+      throw new Error("Google Drive upload session could not be created");
+    }
+
+    return c.json({
+      success: true,
+      uploadUrl,
+      fileName: driveFileName,
+      expiresInSeconds: 3600,
+    });
+  } catch (error) {
+    console.error(`Error creating Drive upload session: ${error}`);
+    return c.json({ error: "Der Upload konnte nicht vorbereitet werden." }, 500);
+  }
 });
 
 // Admin: Create guest
